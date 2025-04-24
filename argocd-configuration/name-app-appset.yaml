@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: name-app
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            app-deploy: enabled
+  template:
+    metadata:
+      name: '{{name}}-name-app'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/juanroldan1989/name-app-repo
+        targetRevision: HEAD
+        path: charts/name-app
+        helm:
+          valueFiles:
+            - values.yaml
+            - applications/name-app/values-{{metadata.labels.environment}}.yaml
+      destination:
+        server: '{{server}}'
+        namespace: name-app
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
