@@ -12,7 +12,7 @@ if kind get clusters | grep -q "$CLUSTER_NAME"; then
   echo "✅ Cluster '$CLUSTER_NAME' already exists, skipping creation."
 else
   echo "> Creating mgmt cluster..."
-  kind create cluster --name "$CLUSTER_NAME"
+  kind create cluster --name "$CLUSTER_NAME" --config bootstrap/mgmt-cluster-config.yaml
 fi
 
 kubectl config use-context "kind-$CLUSTER_NAME"

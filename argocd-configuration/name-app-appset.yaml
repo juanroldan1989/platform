@@ -7,7 +7,7 @@ spec:
     - clusters:
         selector:
           matchLabels:
-            app-deploy: enabled
+            workload-deploy: enabled
   template:
     metadata:
       name: '{{name}}-name-app'
