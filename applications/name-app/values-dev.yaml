@@ -1,0 +1,16 @@
+namespace: name-app
+createNamespace: true
+
+app:
+  name: name
+  image: juanroldan1989/name:0.0.1
+  port: 5001
+
+replicaCount: 1
+
+hpa:
+  minReplicas: 1
+  maxReplicas: 5
+
+rollout:
+  enabled: false

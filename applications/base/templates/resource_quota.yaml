@@ -1,0 +1,12 @@
+{{- if .Values.resourceQuota.enabled }}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ .Values.namespace }}-resource-quota
+  namespace: {{ .Values.namespace }}
+spec:
+  hard:
+    cpu: {{ .Values.resourceQuota.cpu | default "20" }}
+    memory: {{ .Values.resourceQuota.memory | default "20Gi" }}
+    pods: {{ .Values.resourceQuota.pods | default "50" }}
+{{- end }}

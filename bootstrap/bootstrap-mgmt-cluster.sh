@@ -36,14 +36,59 @@ fi
 # Wait for ArgoCD
 kubectl rollout status deployment/argocd-server -n argocd
 
-# === Step: Ensure ArgoCD CLI is available ===
+# === Step 4: Ensure ArgoCD CLI is available ===
 if ! command -v argocd &> /dev/null; then
   echo "🔧 Installing ArgoCD CLI..."
   curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
   chmod +x /usr/local/bin/argocd
 fi
 
-# === Step 5: Install Crossplane ===
+# === Step 5: Allow ArgoCD to fetch manifests from GitHub ===
+if [[ -n "${PERSONAL_ACCESS_TOKEN:-}" ]]; then
+  echo "🔐 GitHub token detected — configuring ArgoCD repo access"
+
+  echo "🔁 Port-forwarding ArgoCD server in the background..."
+  kubectl port-forward svc/argocd-server -n argocd 8080:443 >/dev/null 2>&1 &
+  PF_PID=$!
+
+  echo "⏳ Waiting for ArgoCD server pod to be Ready..."
+  for i in {1..30}; do
+    READY=$(kubectl get pod -n argocd -l app.kubernetes.io/name=argocd-server -o jsonpath="{.items[0].status.containerStatuses[0].ready}" 2>/dev/null || echo "false")
+    if [[ "$READY" == "true" ]]; then
+      echo "✅ ArgoCD server pod is Ready"
+      break
+    fi
+    echo "⌛ ArgoCD server not ready yet, retrying... ($i/30)"
+    sleep 5
+  done
+
+  echo "🔑 Fetching ArgoCD admin password from Kubernetes secret..."
+  export ARGOCD_PASSWORD=$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode)
+
+  echo "🔐 Logging into ArgoCD CLI via localhost..."
+  argocd login localhost:8080 \
+    --username admin \
+    --password "$ARGOCD_PASSWORD" \
+    --insecure
+
+  echo "🔎 Checking if repo is already registered..."
+  if ! argocd repo list | grep -q 'platform'; then
+    echo "📥 Registering repo with ArgoCD..."
+    argocd repo add https://github.com/juanroldan1989/platform \
+      --username juanroldan1989 \
+      --password "$PERSONAL_ACCESS_TOKEN" \
+      --type git
+  else
+    echo "✅ Repo already registered"
+  fi
+
+  echo "🛑 Cleaning up port-forward (PID: $PF_PID)..."
+  kill $PF_PID
+else
+  echo "✅ Skipping ArgoCD repo registration — no GitHub token provided"
+fi
+
+# === Step 6: Install Crossplane ===
 helm repo add crossplane-stable https://charts.crossplane.io/stable
 helm repo update
 if ! helm status crossplane -n "$CROSSPLANE_NAMESPACE" &> /dev/null; then
@@ -57,7 +102,7 @@ fi
 # Wait for Crossplane
 kubectl rollout status deployment/crossplane -n "$CROSSPLANE_NAMESPACE"
 
-# === Step 6: Install clusterctl (Cluster API CLI) if not installed ===
+# === Step 7: Install clusterctl (Cluster API CLI) if not installed ===
 if ! command -v clusterctl &> /dev/null; then
   echo "📦 Installing clusterctl..."
   OS=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -81,7 +126,7 @@ else
   echo "✅ clusterctl already installed."
 fi
 
-# === Step 7: Initialize Cluster API with Docker infrastructure ===
+# === Step 8: Initialize Cluster API with Docker infrastructure ===
 if ! kubectl get ns capi-system &> /dev/null; then
   clusterctl init --infrastructure docker
 else
