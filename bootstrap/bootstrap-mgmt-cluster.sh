@@ -23,23 +23,24 @@ kubectl create namespace argocd || true
 kubectl create namespace "$CROSSPLANE_NAMESPACE" || true
 
 # === Step 3: Install ArgoCD ===
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/$ARGOCD_VERSION/manifests/install.yaml
+echo "> Installing ArgoCD via Helm"
+helm repo add argo https://argoproj.github.io/argo-helm || true
+helm repo update
+
+if ! kubectl get pods -n argocd | grep -q argocd-server; then
+  helm install argocd argo/argo-cd --namespace argocd --create-namespace
+else
+  echo "➡️ ArgoCD already installed, skipping..."
+fi
 
 # Wait for ArgoCD
 kubectl rollout status deployment/argocd-server -n argocd
 
-# === Step 4: Install ArgoCD CLI if missing ===
+# === Step: Ensure ArgoCD CLI is available ===
 if ! command -v argocd &> /dev/null; then
   echo "🔧 Installing ArgoCD CLI..."
-  curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 || {
-    echo "⚠️ Failed to write to /usr/local/bin — trying local install..."
-    mkdir -p "$HOME/.local/bin"
-    curl -sSL -o "$HOME/.local/bin/argocd" https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-    chmod +x "$HOME/.local/bin/argocd"
-    export PATH="$HOME/.local/bin:$PATH"
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
-  }
-  chmod +x /usr/local/bin/argocd || true
+  curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+  chmod +x /usr/local/bin/argocd
 fi
 
 # === Step 5: Install Crossplane ===
