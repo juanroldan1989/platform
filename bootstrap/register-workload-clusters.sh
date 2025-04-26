@@ -3,7 +3,7 @@ set -euo pipefail
 
 MGMT_CONTAINER="mgmt-cluster-control-plane"     # Name of the management cluster control plane container
 MGMT_CONTAINER_TARGET_DIR="/etc/kubernetes"     # Target directory in the management cluster control plane container
-MGMT_CONTAINER_ARGOCD_SERVER="10.96.48.73:443" # argocd-server service IP address
+MGMT_CONTAINER_ARGOCD_SERVER="10.96.193.234:443" # argocd-server service IP address
 
 WORKLOAD_CLUSTERS="$(kubectl get clusters -o jsonpath='{.items[*].metadata.name}')"
 

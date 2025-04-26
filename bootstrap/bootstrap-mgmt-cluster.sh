@@ -83,7 +83,7 @@ if [[ -n "${PERSONAL_ACCESS_TOKEN:-}" ]]; then
   fi
 
   echo "🛑 Cleaning up port-forward (PID: $PF_PID)..."
-  kill $PF_PID
+  # kill $PF_PID
 else
   echo "✅ Skipping ArgoCD repo registration — no GitHub token provided"
 fi
@@ -136,4 +136,9 @@ fi
 # === Final Output ===
 echo "🎉 MGMT cluster setup complete with ArgoCD, Crossplane, and Cluster API."
 echo "🔑 Access ArgoCD UI at https://localhost:8080 (if port-forwarded)"
-echo "📘 Default ArgoCD login: admin / (password in argocd-initial-admin-secret)"
+
+# === Argocd UI Login ===
+echo "📘 Default ArgoCD login: admin"
+echo "🔑 ArgoCD admin password: $ARGOCD_PASSWORD"
+echo "🔗 ArgoCD server port-forward: kubectl port-forward svc/argocd-server -n argocd 8080:443"
+echo "🔗 ArgoCD server URL: https://localhost:8080"

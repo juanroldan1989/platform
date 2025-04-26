@@ -1,3 +1,4 @@
+---
 apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
 kind: DockerMachineTemplate
 metadata:
@@ -6,3 +7,71 @@ spec:
   template:
     spec:
       customImage: kindest/node:v1.32.2
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: dev-cluster-md-0
+spec:
+  clusterName: dev-cluster
+  replicas: 1
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/deployment-name: dev-cluster-md-0
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/deployment-name: dev-cluster-md-0
+    spec:
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          name: dev-cluster-md-0
+      clusterName: dev-cluster
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: DockerMachineTemplate
+        name: dev-cluster-md-0
+      version: v1.32.2
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: dev-cluster-md-0
+spec:
+  template:
+    spec:
+      files:
+        - path: /etc/kubernetes/pki/ca.crt
+          owner: root:root
+          permissions: "0640"
+          contentFrom:
+            secret:
+              name: dev-cluster-ca
+              key: ca.crt
+        - path: /etc/cloud/cloud.cfg.d/99-custom-cmd.cfg
+          owner: root:root
+          permissions: "0644"
+          content: |
+            #cloud-config
+            runcmd:
+              - bash -c '
+                  kubeadm join --config /run/kubeadm/kubeadm-join-config.yaml --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt
+                  if [ $? -eq 0 ]; then
+                    echo "kubeadm join successful, marking node as initialized"
+                    mkdir -p /run/cluster-api
+                    touch /run/cluster-api/bootstrap-success.complete
+                  else
+                    echo "kubeadm join failed, node not initialized"
+                  fi
+                '
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: DockerMachineTemplate
+metadata:
+  name: dev-cluster-md-0
+spec:
+  template:
+    spec: {}
