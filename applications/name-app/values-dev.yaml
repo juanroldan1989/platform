@@ -14,3 +14,8 @@ hpa:
 
 rollout:
   enabled: false
+
+ingress:
+  enabled: true
+  host: name-app.dev.localhost
+  # add to /etc/hosts -> 127.0.0.1 name-app.dev.localhost
