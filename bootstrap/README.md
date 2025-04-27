@@ -142,8 +142,16 @@ kubectl apply -f argocd-configuration/name-app-appset.yaml -n argocd
 
 ### ArgoCD UI - Applications across clusters
 
+<img width="1359" alt="Screenshot 2025-04-27 at 11 46 23" src="https://github.com/user-attachments/assets/76790d21-5e38-4762-ad6f-32c7cea6f7cf" />
+
 ### ArgoCD UI - Name App (DEV Cluster)
+
+<img width="1360" alt="Screenshot 2025-04-27 at 11 46 35" src="https://github.com/user-attachments/assets/96c468d3-09dd-494d-8a0f-20e8a203cd37" />
 
 ### ArgoCD UI - Name App (TEST Cluster)
 
+<img width="1359" alt="Screenshot 2025-04-27 at 11 46 56" src="https://github.com/user-attachments/assets/943edb9d-4ab5-4507-99ac-83c8af867784" />
+
 ### ArgoCD UI - Name App (PROD Cluster)
+
+<img width="1350" alt="Screenshot 2025-04-27 at 11 46 45" src="https://github.com/user-attachments/assets/33cdf5ca-eb14-456c-aef5-5833fa602c45" />

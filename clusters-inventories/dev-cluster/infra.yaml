@@ -11,7 +11,7 @@ spec:
 apiVersion: cluster.x-k8s.io/v1beta1
 kind: MachineDeployment
 metadata:
-  name: dev-cluster-md-0
+  name: dev-cluster-md-0 # TODO: update this to dev-cluster-worker-0 or something similar
 spec:
   clusterName: dev-cluster
   replicas: 1
