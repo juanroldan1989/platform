@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nginx-ingress
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: dev
+            namespace: dev-cluster
+            valuesFile: values-dev.yaml
+          - name: test
+            namespace: test-cluster
+            valuesFile: values-test.yaml
+          - name: prod
+            namespace: prod-cluster
+            valuesFile: values-prod.yaml
+  template:
+    metadata:
+      name: nginx-ingress-{{name}}
+      namespace: argocd
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/juanroldan1989/platform.git
+        targetRevision: main
+        path: addons-helm-charts/nginx-ingress-controller
+        helm:
+          valueFiles:
+            - '{{valuesFile}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: ingress-nginx
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
