@@ -1,5 +1,9 @@
 # Bootstrap
 
+## Architecture
+
+<img width="917" alt="Screenshot 2025-04-27 at 17 17 59" src="https://github.com/user-attachments/assets/0ce967f8-6e7f-4b28-b49b-6864c1da20e7" />
+
 ## Provision MGMT Cluster
 
 - This cluster is the management access to itself and all the others clusters.
