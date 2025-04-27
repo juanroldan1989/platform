@@ -32,40 +32,44 @@ Each `workload` cluster (dev/test/prod) is provisioned with:
 - Inspecting machines, machine deployments and containers:
 
 ```bash
-kubectl get machinedeployments -A
-                                                                                                                                             in 0.056s (0)
-NAMESPACE   NAME                CLUSTER        REPLICAS   READY   UPDATED   UNAVAILABLE   PHASE       AGE   VERSION
-default     dev-cluster-md-0    dev-cluster    1                  1         1             ScalingUp   27m   v1.32.2
-default     prod-cluster-md-0   prod-cluster   1                  1         1             ScalingUp   27m   v1.32.2
-default     test-cluster-md-0   test-cluster   1                  1         1             ScalingUp   27m   v1.32.2
+docker ps
 
-----
+CONTAINER ID   IMAGE                                COMMAND                  CREATED              STATUS              PORTS                                              NAMES
+839462831ee2   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   59 seconds ago       Up 58 seconds                                                          test-cluster-md-0-8lcth-c4ggb
+4f9b3250ef14   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   About a minute ago   Up 58 seconds                                                          prod-cluster-md-0-7drpc-98gdt
+06f026194fbe   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   About a minute ago   Up 58 seconds                                                          dev-cluster-md-0-whz8f-tn99c
+41c2416c4a21   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   About a minute ago   Up About a minute   127.0.0.1:55019->6443/tcp                          test-cluster-control-plane-bsvhg
+0240ae86faca   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   About a minute ago   Up About a minute   127.0.0.1:55020->6443/tcp                          prod-cluster-control-plane-fshm4
+0c917ecbc788   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   About a minute ago   Up About a minute   127.0.0.1:55018->6443/tcp                          dev-cluster-control-plane-vqw2t
+a485990bfe8d   kindest/haproxy:v20230606-42a2262b   "haproxy -W -db -f /…"   About a minute ago   Up About a minute   0.0.0.0:55016->6443/tcp, 0.0.0.0:55017->8404/tcp   test-cluster-lb
+5c8584e87fb8   kindest/haproxy:v20230606-42a2262b   "haproxy -W -db -f /…"   About a minute ago   Up About a minute   0.0.0.0:55014->6443/tcp, 0.0.0.0:55015->8404/tcp   prod-cluster-lb
+07f7cb444b5d   kindest/haproxy:v20230606-42a2262b   "haproxy -W -db -f /…"   About a minute ago   Up About a minute   0.0.0.0:55012->6443/tcp, 0.0.0.0:55013->8404/tcp   dev-cluster-lb
+83054fa7389a   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   5 minutes ago        Up 5 minutes        127.0.0.1:64899->6443/tcp                          mgmt-cluster-control-plane
+
+---
 
 docker ps
-                                                                                                                                                                                                       in 0.082s (0)
-CONTAINER ID   IMAGE                                COMMAND                  CREATED          STATUS          PORTS                                              NAMES
-d12c283039a9   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   27 minutes ago   Up 27 minutes                                                      prod-cluster-md-0-5bgp7-wxjvx
-df62291590ea   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   27 minutes ago   Up 27 minutes                                                      test-cluster-md-0-zx5nt-ftl7r
-e9ff34f82fc2   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   27 minutes ago   Up 27 minutes                                                      dev-cluster-md-0-8vh7l-hlt7b
-50877e5dc865   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   27 minutes ago   Up 27 minutes   127.0.0.1:55053->6443/tcp                          test-cluster-control-plane-sgzr7
-160797ae10a5   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   27 minutes ago   Up 27 minutes   127.0.0.1:55052->6443/tcp                          prod-cluster-control-plane-vzwxv
-71606fffc779   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   27 minutes ago   Up 27 minutes   127.0.0.1:55051->6443/tcp                          dev-cluster-control-plane-fsgrs
-4d09067eca0d   kindest/haproxy:v20230606-42a2262b   "haproxy -W -db -f /…"   27 minutes ago   Up 27 minutes   0.0.0.0:55067->6443/tcp, 0.0.0.0:55068->8404/tcp   test-cluster-lb
-b325c704bb8c   kindest/haproxy:v20230606-42a2262b   "haproxy -W -db -f /…"   27 minutes ago   Up 27 minutes   0.0.0.0:55065->6443/tcp, 0.0.0.0:55066->8404/tcp   prod-cluster-lb
-076c0e2eff12   kindest/haproxy:v20230606-42a2262b   "haproxy -W -db -f /…"   27 minutes ago   Up 27 minutes   0.0.0.0:55063->6443/tcp, 0.0.0.0:55064->8404/tcp   dev-cluster-lb
-9951c50018c7   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   31 minutes ago   Up 31 minutes   127.0.0.1:65040->6443/tcp                          mgmt-cluster-control-plane
 
-----
+CONTAINER ID   IMAGE                                COMMAND                  CREATED              STATUS              PORTS                                              NAMES
+839462831ee2   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   About a minute ago   Up About a minute                                                      test-cluster-md-0-8lcth-c4ggb
+4f9b3250ef14   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   About a minute ago   Up About a minute                                                      prod-cluster-md-0-7drpc-98gdt
+06f026194fbe   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   About a minute ago   Up About a minute                                                      dev-cluster-md-0-whz8f-tn99c
+41c2416c4a21   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   2 minutes ago        Up 2 minutes        127.0.0.1:55019->6443/tcp                          test-cluster-control-plane-bsvhg
+0240ae86faca   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   2 minutes ago        Up 2 minutes        127.0.0.1:55020->6443/tcp                          prod-cluster-control-plane-fshm4
+0c917ecbc788   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   2 minutes ago        Up 2 minutes        127.0.0.1:55018->6443/tcp                          dev-cluster-control-plane-vqw2t
+a485990bfe8d   kindest/haproxy:v20230606-42a2262b   "haproxy -W -db -f /…"   2 minutes ago        Up 2 minutes        0.0.0.0:55016->6443/tcp, 0.0.0.0:55017->8404/tcp   test-cluster-lb
+5c8584e87fb8   kindest/haproxy:v20230606-42a2262b   "haproxy -W -db -f /…"   2 minutes ago        Up 2 minutes        0.0.0.0:55014->6443/tcp, 0.0.0.0:55015->8404/tcp   prod-cluster-lb
+07f7cb444b5d   kindest/haproxy:v20230606-42a2262b   "haproxy -W -db -f /…"   2 minutes ago        Up 2 minutes        0.0.0.0:55012->6443/tcp, 0.0.0.0:55013->8404/tcp   dev-cluster-lb
+83054fa7389a   kindest/node:v1.32.2                 "/usr/local/bin/entr…"   5 minutes ago        Up 5 minutes        127.0.0.1:64899->6443/tcp                          mgmt-cluster-control-plane
 
-kubectl get machines -A -o wide
-                                                                                                                                                                                                       in 0.071s (0)
-NAMESPACE   NAME                               CLUSTER        NODENAME                           PROVIDERID                                    PHASE          AGE   VERSION
-default     dev-cluster-control-plane-fsgrs    dev-cluster    dev-cluster-control-plane-fsgrs    docker:////dev-cluster-control-plane-fsgrs    Running        28m   v1.32.2
-default     dev-cluster-md-0-8vh7l-hlt7b       dev-cluster                                                                                     Provisioning   27m   v1.32.2
-default     prod-cluster-control-plane-vzwxv   prod-cluster   prod-cluster-control-plane-vzwxv   docker:////prod-cluster-control-plane-vzwxv   Running        28m   v1.32.2
-default     prod-cluster-md-0-5bgp7-wxjvx      prod-cluster                                                                                    Provisioning   27m   v1.32.2
-default     test-cluster-control-plane-sgzr7   test-cluster   test-cluster-control-plane-sgzr7   docker:////test-cluster-control-plane-sgzr7   Running        28m   v1.32.2
-default     test-cluster-md-0-zx5nt-ftl7r      test-cluster                                                                                    Provisioning   27m   v1.32.2
+---
+
+kubectl get machinedeployments -A
+
+NAMESPACE   NAME                CLUSTER        REPLICAS   READY   UPDATED   UNAVAILABLE   PHASE     AGE     VERSION
+default     dev-cluster-md-0    dev-cluster    1          1       1         0             Running   2m32s   v1.32.2
+default     prod-cluster-md-0   prod-cluster   1          1       1         0             Running   2m32s   v1.32.2
+default     test-cluster-md-0   test-cluster   1          1       1         0             Running   2m32s   v1.32.2
 ```
 
 ## Register Workload Clusters into MGMT Cluster
@@ -104,19 +108,28 @@ root@mgmt-cluster-control-plane:/etc/kubernetes# ls
 admin.conf		 dev-cluster.kubeconfig  manifests  prod-cluster.kubeconfig  super-admin.conf
 controller-manager.conf  kubelet.conf		 pki	    scheduler.conf	     test-cluster.kubeconfig
 
-root@mgmt-cluster-control-plane:~# export KUBECONFIG=/etc/kubernetes/dev-cluster.kubeconfig
+root@mgmt-cluster-control-plane:/# kubectl get nodes
+NAME                         STATUS   ROLES           AGE   VERSION
+mgmt-cluster-control-plane   Ready    control-plane   12m   v1.32.2
 
-root@mgmt-cluster-control-plane:~# kubectl config get-contexts
-CURRENT   NAME                            CLUSTER       AUTHINFO            NAMESPACE
-*         dev-cluster-admin@dev-cluster   dev-cluster   dev-cluster-admin
+root@mgmt-cluster-control-plane:/# export KUBECONFIG=/etc/kubernetes/dev-cluster.kubeconfig
 
-root@mgmt-cluster-control-plane:~# kubectl config use-context dev-cluster-admin@dev-cluster
+root@mgmt-cluster-control-plane:/# kubectl get nodes
+NAME                              STATUS   ROLES           AGE     VERSION
+dev-cluster-control-plane-vqw2t   Ready    control-plane   9m20s   v1.32.2
+dev-cluster-md-0-whz8f-tn99c      Ready    <none>          8m56s   v1.32.2
 
-Switched to context "dev-cluster-admin@dev-cluster".
+root@mgmt-cluster-control-plane:/# kubectl get svc -A
+NAMESPACE     NAME         TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)                  AGE
+default       kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP                  9m25s
+kube-system   kube-dns     ClusterIP   10.96.0.10     <none>        53/UDP,53/TCP,9153/TCP   9m21s
+name-app      name         ClusterIP   10.96.81.128   <none>        5001/TCP                 5m49s
 
-root@mgmt-cluster-control-plane:~# kubectl get nodes
-NAME                              STATUS     ROLES           AGE   VERSION
-dev-cluster-control-plane-cmf5j   Ready      control-plane   35m   v1.32.2
+root@mgmt-cluster-control-plane:/# kubectl get deploy -A
+NAMESPACE     NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system   calico-kube-controllers   1/1     1            1           9m14s
+kube-system   coredns                   2/2     2            2           9m28s
+name-app      name-deployment           1/1     1            1           5m56s
 ```
 
 ## Deploying Applications into Workload Clusters
@@ -126,3 +139,11 @@ dev-cluster-control-plane-cmf5j   Ready      control-plane   35m   v1.32.2
 ```bash
 kubectl apply -f argocd-configuration/name-app-appset.yaml -n argocd
 ```
+
+### ArgoCD UI - Applications across clusters
+
+### ArgoCD UI - Name App (DEV Cluster)
+
+### ArgoCD UI - Name App (TEST Cluster)
+
+### ArgoCD UI - Name App (PROD Cluster)

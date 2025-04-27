@@ -50,22 +50,20 @@ spec:
             secret:
               name: dev-cluster-ca
               key: ca.crt
-        - path: /etc/cloud/cloud.cfg.d/99-custom-cmd.cfg
-          owner: root:root
-          permissions: "0644"
-          content: |
-            #cloud-config
-            runcmd:
-              - bash -c '
-                  kubeadm join --config /run/kubeadm/kubeadm-join-config.yaml --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt
-                  if [ $? -eq 0 ]; then
-                    echo "kubeadm join successful, marking node as initialized"
-                    mkdir -p /run/cluster-api
-                    touch /run/cluster-api/bootstrap-success.complete
-                  else
-                    echo "kubeadm join failed, node not initialized"
-                  fi
-                '
+      preKubeadmCommands:
+        - |
+          bash -c '
+            echo "[INFO] Running custom kubeadm join..."
+            kubeadm join --config /run/kubeadm/kubeadm-join-config.yaml --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt
+            if [ $? -eq 0 ]; then
+              echo "[INFO] kubeadm join successful, marking bootstrap as complete"
+              mkdir -p /run/cluster-api
+              touch /run/cluster-api/bootstrap-success.complete
+            else
+              echo "[ERROR] kubeadm join failed"
+              exit 1
+            fi
+          '
 
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
