@@ -37,14 +37,14 @@ This repository's mission is to **enable a streamlined, scalable and self-servic
 
 - Automate `mgmt-cluster` provisioning (local setup / cloud solution: CIVO)
 - Automate `mgmt-cluster` configuration (installing addons: ESO, Cert-Manager, DNS manager, NGINX Ingress, etc)
-- I want to reduce almost to 0 the use of manual scripts
+- Bottom line goal is to eliminate manual scripts as much as possible.
 
 ### 2. Workload clusters
 
 - Apply GitOps to the process of provisioning `workload` clusters (`dev`, `test`, `prod`).
 - Automate process of registering `workload` clusters within `ArgoCD` server in `mgmt-cluster`.
 - Automate process of configuring `workload` clusters (installing all addons needed)
-- I want to reduce almost to 0 the use of manual scripts
+- Bottom line goal is to eliminate manual scripts as much as possible.
 
 ### 3. Deploy applications
 
@@ -69,3 +69,23 @@ This repository's mission is to **enable a streamlined, scalable and self-servic
 - Have traffic being load-balanced between these 2 clusters
 - Then shutdown 1 cluster and see how traffic is re-routed 100% to the other cluster
 - Then provision back again the cluster and see how traffic is re-routed back to 50/50 between `workload` clusters.
+
+### 5. Costs
+
+https://github.com/kubecost
+
+## References
+
+### Multi-cluster
+
+- https://www.youtube.com/watch?v=4p2YAp5tRM4 (Demo)
+- https://github.com/konstructio/navigate/tree/main/2024-austin/registry (Demo source code)
+- https://www.getambassador.io/blog/mastering-kubernetes-multi-cluster-availability-scalability#multi-cluster-application-architecture
+- https://www.apptio.com/topics/kubernetes/multi-cloud/multi-cluster/
+- https://www.tigera.io/learn/guides/kubernetes-networking/kubernetes-multi-cluster/
+- https://multicluster.sigs.k8s.io/
+
+### Products
+
+- https://github.com/kubefirst/
+- https://linkerd.io/
