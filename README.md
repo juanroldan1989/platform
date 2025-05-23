@@ -2,27 +2,17 @@
 
 This repository is built on top of all achievements made within [gitops-manifests-repo](https://github.com/juanroldan1989/gitops-manifests-repo).
 
-Also, [gitops-manifests-repo](https://github.com/juanroldan1989/gitops-manifests-repo) presents certains limitations.
+This [platform](https://github.com/juanroldan1989/platform) repository is built to expand those achievements and make them more scalable:
 
-This [platform](https://github.com/juanroldan1989/platform) repository is built to tackle those limitations:
+- This repository is meant to define a **"management" cluster** to be up and running
 
-- Deploy **different versions** of the **a K8S application** across **different environments/clusters.**
+- Within this "mangement" cluster, `ArgoCD` (or other tools, please advise) is provisioned and takes care of **detecting** changes to `platform/manifests`, selecting **the right cluster** and provisioning/updating the **correct K8S application.**
 
-- Define a way to persist **which K8S applications are provisioned on each environment**. Facilitating disaster recovery strategies.
-
-- The usage of **ArgoCD ApplicationSet** can be really useful when dealing with **1 K8S app deployed across different environments/clusters** (e.g.: `DEV/TEST/PROD` clusters).
-
--- At the same time, this approach requires for a **specific "management" cluster** to be up and running
-
--- Within this "mangement" cluster, `ArgoCD` is provisioned and takes care of **detecting** changes to manifests, selecting **the right cluster** and provisioning/updating the **correct K8S application.**
-
--- Now, this leads to the question: how should I provision this "management" cluster in the first place? under which folder/environment structure?
-
--- Also, how should I provision resources a `sample-app` might need? (e.g.: `postgres` database, `redis` cache, `S3` bucket, etc.) in a secure, automated and scalable way, considering running hundreds of applications.
+- Now, this leads to one question: how should I provision this "management" cluster in the first place? under which folder/environment structure? k3ds could be a solution for this.
 
 ## Introduction
 
-This [platform](https://github.com/juanroldan1989/platform) repository represents the central control plane for managing Kubernetes-based application environments using GitOps principles.
+This [platform](https://github.com/juanroldan1989/platform) repository goal is to manage Kubernetes-based application environments using GitOps principles.
 
 This repository provides the foundational tooling and infrastructure automation to support development teams deploying to `DEV`, `TEST` and `PROD` environments.
 
@@ -30,23 +20,52 @@ This repository provides the foundational tooling and infrastructure automation 
 
 This repository's mission is to **enable a streamlined, scalable and self-service platform** where:
 
-- Application teams focus solely on developing their apps.
+1. Application teams focus solely on developing their apps (within separate github app repositories, e.g.: `applicatioins` repo)
 
-- Platform engineers define and maintain infrastructure as code.
+2. Within this `platform` github repository, Platform engineers follow `GitOps` principles to define:
 
-- GitOps ensures transparency, traceability and automation across all stages.
+- MGMT Cluster
+- Workload Clusters
+- Applications running in which clusters
+- Interface to manage all this (it could be argocd running within MGMT Cluster, it could be Rancher, etc)
 
-## Sequence of steps regarding `platform` repo (local / cloud)
+3. GitOps ensures transparency, traceability and automation across all environments (`DEV/TEST/PROD`)
+
+## `platform` repo - Setup to contain (local / cloud)
 
 ### 1. Management cluster
 
-Automate `mgmt-cluster` provisioning and configuration.
+- Automate `mgmt-cluster` provisioning (local setup / cloud solution: CIVO)
+- Automate `mgmt-cluster` configuration (installing addons: ESO, Cert-Manager, DNS manager, NGINX Ingress, etc)
+- I want to reduce almost to 0 the use of manual scripts
 
 ### 2. Workload clusters
 
-- Automate `workload` clusters (`dev`, `test`, `prod`) provisioning and configuration via `mgmt-cluster`.
-- Register `workload` clusters within `ArgoCD` in `mgmt-cluster`.
+- Apply GitOps to the process of provisioning `workload` clusters (`dev`, `test`, `prod`).
+- Automate process of registering `workload` clusters within `ArgoCD` server in `mgmt-cluster`.
+- Automate process of configuring `workload` clusters (installing all addons needed)
+- I want to reduce almost to 0 the use of manual scripts
 
 ### 3. Deploy applications
 
-- Automate `applications` deployment from `manifests` witin their respective `workload` clusters (`dev`, `test`, `prod`).
+- Automate `applications` deployment from `platform/manifests` folder witin their respective `workload` clusters (`dev`, `test`, `prod`).
+
+### 4. Applications that need to provide external access for users
+
+- How could I install, validate and define an ingress resource for each of my applications that needs it, in a GitOps way ?
+- How could I handle cert-managers for each ingress resource in a GitOps way ?
+- How could I handle DNS for each ingress resource in a GitOps way ?
+- I've already got an automatalife.com domain registered within Cloudflare.
+- How could I use this domain for future testing of my applications to provision secure endpoints to try accessing applications ?
+
+### 5. Storage
+
+- How could I provision and manage storage solutions for my multi-cluster platform ?
+- What are the solutions to implement? (local setup / cloud solution: CIVO)
+
+### 6. Failover solutions
+
+- I'd like to define 2 clusters running `workload` applications
+- Have traffic being load-balanced between these 2 clusters
+- Then shutdown 1 cluster and see how traffic is re-routed 100% to the other cluster
+- Then provision back again the cluster and see how traffic is re-routed back to 50/50 between `workload` clusters.
