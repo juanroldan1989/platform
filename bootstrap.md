@@ -27,7 +27,7 @@ cd platform
 - This `mgmt-cluster` will also have additional manifests that install `argocd` to the new cluster with a few default configurations.
 
 ```sh
-k3d cluster create kubefirst \
+k3d cluster create mgmt-cluster \
   --agents "1" \
   --agents-memory "4096m" \
   --volume $PWD/manifests/bootstrap-k3d.yaml:/var/lib/rancher/k3s/server/manifests/bootstrap-k3d.yaml
@@ -87,3 +87,9 @@ kubectl -n argocd get secret/argocd-initial-admin-secret -ojsonpath='{.data.pass
 - username: `admin`
 
 - password: (paste from your clipboard)
+
+## Delete mgmt-cluster
+
+```bash
+k3d node delete k3d-mgmt-cluster-agent-0 k3d-mgmt-cluster-server-0 k3d-mgmt-cluster-serverlb k3d-mgmt-cluster-tools
+```

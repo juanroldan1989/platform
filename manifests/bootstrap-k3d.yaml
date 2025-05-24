@@ -1,39 +1,56 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: v1
+kind: Namespace
 metadata:
-  name: kustomize-install-argocd
-  namespace: kube-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "20"
-spec:
-  template:
-    spec:
-      serviceAccountName: default
-      containers:
-      - name: wait
-        image: bitnami/kubectl:1.25.12
-        command: # TODO: move manifests/argocd/demo to this repo
-        - /bin/sh
-        - -c
-        - |
-          kubectl kustomize https://github.com/kubefirst/manifests/argocd/demo\?ref\=main | kubectl apply -f -
-      restartPolicy: Never
-  backoffLimit: 1
+  name: argocd
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argocd-bootstrap
+  namespace: argocd
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kubernetes-dashboard-admin-user
+  name: argocd-bootstrap-admin
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
 subjects:
 - kind: ServiceAccount
-  name: default
-  namespace: kube-system
+  name: argocd-bootstrap
+  namespace: argocd
 ---
-apiVersion: v1
-kind: Namespace
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: crossplane-system
+  name: argocd-bootstrap-installer
+  namespace: argocd
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: argocd-bootstrap-installer
+    spec:
+      serviceAccountName: argocd-bootstrap
+      containers:
+        - name: install-argocd
+          image: bitnami/kubectl:1.25.12
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "[INFO] Installing ArgoCD from remote Kustomize source..." && \
+              kubectl apply -k "https://github.com/argoproj/argo-cd/manifests/cluster-install?ref=v2.9.6"
+          securityContext:
+            runAsUser: 0
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+      restartPolicy: Never
