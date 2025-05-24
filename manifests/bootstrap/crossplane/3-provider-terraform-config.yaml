@@ -1,0 +1,17 @@
+apiVersion: pkg.crossplane.io/v1alpha1
+kind: ControllerConfig
+metadata:
+  name: terraform-config
+  namespace: crossplane-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+  labels:
+    app: crossplane-provider-terraform
+spec:
+  args:
+    - -d
+    - --poll=2m
+    - --max-reconcile-rate=2
+  envFrom:
+    - secretRef:
+        name: crossplane-secrets

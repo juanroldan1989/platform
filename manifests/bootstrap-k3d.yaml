@@ -54,3 +54,41 @@ spec:
               cpu: 200m
               memory: 256Mi
       restartPolicy: Never
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: argocd-app-bootstrap
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: argocd-app-bootstrap
+    spec:
+      serviceAccountName: argocd-bootstrap
+      containers:
+        - name: bootstrap
+          image: bitnami/kubectl:1.25.12
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "[INFO] Waiting for ArgoCD to become available..." && \
+              while ! kubectl get svc argocd-server -n argocd >/dev/null 2>&1; do
+                echo "[INFO] Waiting for argocd-server..."; sleep 5;
+              done && \
+              echo "[INFO] ArgoCD is ready. Applying app-of-apps..." && \
+              kubectl create ns crossplane-system || true && \
+              kubectl apply -f https://raw.githubusercontent.com/juanroldan1989/platform/main/argo/app-of-apps.yaml
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+      restartPolicy: OnFailure
