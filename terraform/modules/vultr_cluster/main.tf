@@ -14,10 +14,10 @@ resource "vultr_kubernetes" "cluster" {
 }
 
 provider "kubernetes" {
-  host                   = yamldecode(vultr_kubernetes.cluster.kube_config)["clusters"][0]["cluster"]["server"]
-  client_certificate     = base64decode(yamldecode(vultr_kubernetes.cluster.kube_config)["users"][0]["user"]["client-certificate-data"])
-  client_key             = base64decode(yamldecode(vultr_kubernetes.cluster.kube_config)["users"][0]["user"]["client-key-data"])
-  cluster_ca_certificate = base64decode(yamldecode(vultr_kubernetes.cluster.kube_config)["clusters"][0]["cluster"]["certificate-authority-data"])
+  host                   = vultr_kubernetes.cluster.kube_config[0].server
+  client_certificate     = base64decode(vultr_kubernetes.cluster.kube_config[0].client_certificate)
+  client_key             = base64decode(vultr_kubernetes.cluster.kube_config[0].client_key)
+  cluster_ca_certificate = base64decode(vultr_kubernetes.cluster.kube_config[0].cluster_ca_certificate)
 }
 
 provider "kubernetes" {
