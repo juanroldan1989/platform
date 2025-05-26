@@ -9,7 +9,7 @@ spec:
     name: london
   forProvider:
     source: Remote
-    module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/cluster?ref=main
+    module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/civo_cluster?ref=main
     vars:
     - key: cluster_name
       value: london

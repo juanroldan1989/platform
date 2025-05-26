@@ -1,0 +1,23 @@
+apiVersion: tf.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: newyork-infrastructure
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  providerConfigRef:
+    name: newyork
+  forProvider:
+    source: Remote
+    module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/vultr_cluster?ref=main
+    vars:
+      - key: cluster_name
+        value: newyork
+      - key: node_count
+        value: "3"
+      - key: node_type
+        value: "vc2-2c-4gb"
+      - key: min_nodes
+        value: "1"
+      - key: max_nodes
+        value: "3"
