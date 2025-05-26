@@ -36,24 +36,23 @@ k3d cluster create mgmt-cluster \
 
 The result will be a local bootstrap k3d cluster with the necessary components for app and infrastructure management.
 
-### 1.2 export your `CIVO_TOKEN` for provisioning cloud infrastructure
+### 1.2 Cloud Provider API Tokens
 
-It is available on your [profile security page](https://dashboard.civo.com/security) in your Civo account.
+- [Civo Dashboard](https://dashboard.civo.com/security)
+- [Vultr Dashboard](https://my.vultr.com/settings/#settingsapi)
 
 ```sh
 export CIVO_TOKEN=xxxxxxxx
+export VULTR_TOKEN=xxxxxxxx
 ```
 
-The `CIVO_TOKEN` will be used by the `crossplane terraform provider` to allow provisioning of:
+These tokens will be used by the `crossplane terraform provider` to allow provisioning of:
 
-1. CIVO cloud infrastructure
-2. external-dns to create and adjust DNS records in your CIVO cloud account.
-
-```sh
-kubectl -n crossplane-system create secret generic crossplane-secrets \
-  --from-literal=CIVO_TOKEN=$CIVO_TOKEN \
-  --from-literal=TF_VAR_civo_token=$CIVO_TOKEN
-```
+1. `CIVO` and `Vultr` cloud infrastructure
+2. external-dns to create and adjust DNS records in those accounts.
+3. Run the `./scripts/seal-secret.sh`
+4. Commit changes made to `manifests/bootstrap/crossplane/0-crossplane-sealed-secret.yaml`
+5. More info about this in [Secrets README](/secrets.md)
 
 ### 1.3 Wait for all pods in k3d to be Running / Completed
 
@@ -87,7 +86,7 @@ kubectl -n argocd get secret/argocd-initial-admin-secret -ojsonpath='{.data.pass
 
 - password: (paste from your clipboard)
 
-## Step 2: Provisioning a Civo Cluster via GitOps
+## Step 2: Provisioning Cluster via GitOps in Civo/Vultr
 
 - After `ArgoCD` is running, the following steps are handled declaratively via GitOps:
 
@@ -97,7 +96,7 @@ kubectl -n argocd get secret/argocd-initial-admin-secret -ojsonpath='{.data.pass
 
 3. A `ProviderConfig` is applied for **credentials and backend** configuration.
 
-4. The `Terraform` module is located at: `terraform/modules/cluster`
+4. The `Terraform` module is located at: `terraform/modules/<cloud>_cluster`
 
 ### To add or remove a cluster:
 
@@ -105,9 +104,9 @@ kubectl -n argocd get secret/argocd-initial-admin-secret -ojsonpath='{.data.pass
 
 - ArgoCD will:
 
-1. Apply the Terraform `Workspace`
+1. Apply/Remove the Terraform `Workspace`
 
-2. Create the `Kubernetes` cluster in `Civo`
+2. Create/Delete the `Kubernetes` cluster in `Civo/Vultr`
 
 3. Register the new cluster in `ArgoCD` using a generated secret (resource `kubernetes_secret_v1.argocd_cluster_secret`)
 

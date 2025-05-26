@@ -76,11 +76,11 @@ kubectl -n crossplane-system get secret crossplane-secrets -o yaml
 kubectl get pods -n crossplane-system -l pkg.crossplane.io/provider=provider-terraform
 
 NAME                                                          READY   STATUS    RESTARTS   AGE
-crossplane-provider-terraform-e816b322200e-674cb76566-v4pwb   1/1     Running   0          3h29m
+crossplane-provider-terraform-xxx-zzz   1/1     Running   0          3h29m
 ```
 
 ```sh
-kubectl -n crossplane-system exec -it crossplane-provider-terraform-e816b322200e-674cb76566-v4pwb -- env | grep VULTR
+kubectl -n crossplane-system exec -it crossplane-provider-terraform-xxx-zzz -- env | grep VULTR
 
 VULTR_TOKEN=xxxxxxxx
 ```
@@ -89,21 +89,10 @@ If variables like `VULTR_TOKEN` or `TF_VAR_vultr_token` are not present:
 
 ### Fix Steps
 
-1. Re-run `seal-secret.sh` with updated environment variables.
+1. Re-run `seal-secret.sh` with updated `VULTR_TOKEN` environment variable/s.
 2. Re-commit and sync via ArgoCD.
-3. Restart the provider pod to force it to reload the updated secret:
+3. Delete the provider pod to force it to reload the updated secret:
 
 ```sh
-kubectl -n crossplane-system delete pod -l pkg.crossplane.io/provider=provider-terraform
+kubectl delete -n crossplane-system crossplane-provider-terraform-xxx-zzz -l pkg.crossplane.io/provider=provider-terraform
 ```
-
-4. Also check
-
-## Summary
-
-* Sealed Secrets ensures secure, GitOps-compliant secret management.
-* The sealed secret is committed to Git and synced via ArgoCD.
-* Run `seal-secret.sh` whenever tokens or clusters change.
-* Restart the provider pods if secrets don’t take effect.
-
-Stay secure, stay GitOps-aligned.
