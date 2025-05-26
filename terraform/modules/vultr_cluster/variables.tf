@@ -3,6 +3,12 @@ variable "vultr_token" {
   description = "API token to authenticate with the Vultr provider"
 }
 
+variable "vultr_region" {
+  type        = string
+  description = "Vultr region to deploy the cluster (e.g. 'ewr', 'sjc')"
+  default     = "ewr"
+}
+
 variable "cluster_name" {
   type        = string
   description = "Unique name to label the cluster and associated resources"
