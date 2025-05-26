@@ -1,5 +1,5 @@
 resource "vultr_kubernetes" "cluster" {
-  region        = "ewr"
+  region        = var.region
   label         = var.cluster_name
   version       = "v1.33.0+1"
 

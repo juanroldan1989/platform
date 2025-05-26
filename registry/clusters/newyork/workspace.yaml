@@ -11,7 +11,7 @@ spec:
     source: Remote
     module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/vultr_cluster?ref=main
     vars:
-      - key: vultr_region
+      - key: region
         value: "ewr"
       - key: cluster_name
         value: newyork
