@@ -35,4 +35,4 @@ spec:
       secretRef:
         namespace: crossplane-system
         name: crossplane-secrets
-        key: VULTR_TOKEN
+        key: TF_VAR_vultr_token
