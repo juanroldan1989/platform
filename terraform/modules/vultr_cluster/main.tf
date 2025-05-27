@@ -1,7 +1,7 @@
 resource "vultr_kubernetes" "cluster" {
-  region        = var.region
-  label         = var.cluster_name
-  version       = "v1.33.0+1"
+  region  = var.region
+  label   = var.cluster_name
+  version = "v1.33.0+1"
 
   node_pools {
     node_quantity = tonumber(var.node_count)
@@ -13,16 +13,18 @@ resource "vultr_kubernetes" "cluster" {
   }
 }
 
+# Decode the kubeconfig YAML string into a map for safe access
 locals {
-  kubeconfig = try(yamldecode(vultr_kubernetes.cluster.kube_config), null)
+  kubeconfig_raw = vultr_kubernetes.cluster.kube_config
+  kubeconfig_json = yamldecode(local.kubeconfig_raw)
 }
 
 provider "kubernetes" {
   alias                  = "remote"
-  host                   = try(local.kubeconfig.clusters[0].cluster.server, "")
-  client_certificate     = try(base64decode(local.kubeconfig.users[0].user.client-certificate-data), "")
-  client_key             = try(base64decode(local.kubeconfig.users[0].user.client-key-data), "")
-  cluster_ca_certificate = try(base64decode(local.kubeconfig.clusters[0].cluster.certificate-authority-data), "")
+  host                   = try(local.kubeconfig_json["clusters"][0]["cluster"]["server"], "")
+  client_certificate     = try(base64decode(local.kubeconfig_json["users"][0]["user"]["client-certificate-data"]), "")
+  client_key             = try(base64decode(local.kubeconfig_json["users"][0]["user"]["client-key-data"]), "")
+  cluster_ca_certificate = try(base64decode(local.kubeconfig_json["clusters"][0]["cluster"]["certificate-authority-data"]), "")
 }
 
 provider "kubernetes" {
@@ -45,7 +47,6 @@ resource "kubernetes_cluster_role_v1" "argocd_manager" {
   }
 }
 
-
 resource "kubernetes_cluster_role_binding_v1" "argocd_manager" {
   metadata {
     name = "argocd-manager-role-binding"
@@ -53,11 +54,11 @@ resource "kubernetes_cluster_role_binding_v1" "argocd_manager" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = kubernetes_cluster_role_v1.argocd_manager.metadata.0.name
+    name      = kubernetes_cluster_role_v1.argocd_manager.metadata[0].name
   }
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account_v1.argocd_manager.metadata.0.name
+    name      = kubernetes_service_account_v1.argocd_manager.metadata[0].name
     namespace = "kube-system"
   }
 }
@@ -94,23 +95,23 @@ resource "kubernetes_secret_v1" "argocd_cluster_secret" {
     }
   }
   data = {
-    name              = var.cluster_name
-    server            = yamldecode(vultr_kubernetes.cluster.kube_config)["clusters"][0]["cluster"]["server"]
-    clusterResources  = "true"
+    name             = var.cluster_name
+    server           = local.kubeconfig_json["clusters"][0]["cluster"]["server"]
+    clusterResources = "true"
     config = jsonencode({
       bearerToken     = kubernetes_secret_v1.argocd_manager.data.token
       tlsClientConfig = {
         insecure = false
-        caData   = yamldecode(vultr_kubernetes.cluster.kube_config)["clusters"][0]["cluster"]["certificate-authority-data"]
-        certData = yamldecode(vultr_kubernetes.cluster.kube_config)["users"][0]["user"]["client-certificate-data"]
-        keyData  = yamldecode(vultr_kubernetes.cluster.kube_config)["users"][0]["user"]["client-key-data"]
+        caData   = local.kubeconfig_json["clusters"][0]["cluster"]["certificate-authority-data"]
+        certData = local.kubeconfig_json["users"][0]["user"]["client-certificate-data"]
+        keyData  = local.kubeconfig_json["users"][0]["user"]["client-key-data"]
       }
     })
   }
   type = "Opaque"
 }
 
-# Optional: raw kubeconfig for later admin access (not used by ArgoCD)
+# Optional: raw kubeconfig for debugging or local access
 resource "kubernetes_secret_v1" "cluster_secret" {
   provider = kubernetes.local
   metadata {
