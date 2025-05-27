@@ -13,11 +13,16 @@ resource "vultr_kubernetes" "cluster" {
   }
 }
 
+locals {
+  kubeconfig = try(yamldecode(vultr_kubernetes.cluster.kube_config), null)
+}
+
 provider "kubernetes" {
-  host                   = vultr_kubernetes.cluster.kube_config[0].server
-  client_certificate     = base64decode(vultr_kubernetes.cluster.kube_config[0].client_certificate)
-  client_key             = base64decode(vultr_kubernetes.cluster.kube_config[0].client_key)
-  cluster_ca_certificate = base64decode(vultr_kubernetes.cluster.kube_config[0].cluster_ca_certificate)
+  alias                  = "remote"
+  host                   = try(local.kubeconfig.clusters[0].cluster.server, "")
+  client_certificate     = try(base64decode(local.kubeconfig.users[0].user.client-certificate-data), "")
+  client_key             = try(base64decode(local.kubeconfig.users[0].user.client-key-data), "")
+  cluster_ca_certificate = try(base64decode(local.kubeconfig.clusters[0].cluster.certificate-authority-data), "")
 }
 
 provider "kubernetes" {
