@@ -16,6 +16,7 @@ spec:
       required_providers {
         civo = {
           source = "civo/civo"
+          version = "1.1.0"
         }
 
         kubernetes = {
@@ -29,9 +30,9 @@ spec:
       region = "lon1"
     }
   credentials:
-  - filename: gen-nothing
-    source: None
-    secretRef:
-      namespace: crossplane-system
-      name: crossplane-secrets
-      key: CIVO_TOKEN
+    - filename: gen-nothing
+      source: Secret
+      secretRef:
+        namespace: crossplane-system
+        name: crossplane-secrets
+        key: CIVO_TOKEN

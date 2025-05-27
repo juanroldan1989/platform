@@ -70,7 +70,7 @@ This repository's mission is to **enable a streamlined, scalable and self-servic
 - Then shutdown 1 cluster and see how traffic is re-routed 100% to the other cluster
 - Then provision back again the cluster and see how traffic is re-routed back to 50/50 between `workload` clusters.
 
-### 5. Costs
+### 7. Costs
 
 https://github.com/kubecost
 
