@@ -11,7 +11,7 @@ resource "civo_firewall" "cluster" {
     label      = "http"
     protocol   = "tcp"
     port_range = "80"
-    cidr       = ["0.0.0.0"]
+    cidr       = ["0.0.0.0/0"]
     action     = "allow"
   }
 
@@ -19,7 +19,7 @@ resource "civo_firewall" "cluster" {
     label      = "https"
     protocol   = "tcp"
     port_range = "443"
-    cidr       = ["0.0.0.0"]
+    cidr       = ["0.0.0.0/0"]
     action     = "allow"
   }
 
