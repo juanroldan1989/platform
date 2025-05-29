@@ -14,7 +14,7 @@ resource "vultr_kubernetes" "cluster" {
 }
 
 # https://registry.terraform.io/providers/vultr/vultr/latest/docs/resources/kubernetes#kube_config-1
-# The kube_config attribute is a base64-encoded string containing the `kubeconfig` file for the Kubernetes cluster.
+# The kube_config attribute is a *base64-encoded* string containing the `kubeconfig` file for the Kubernetes cluster.
 locals {
   kubeconfig_raw  = base64decode(vultr_kubernetes.cluster.kube_config)
   kubeconfig_json = yamldecode(local.kubeconfig_raw)

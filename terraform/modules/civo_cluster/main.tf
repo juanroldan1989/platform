@@ -21,6 +21,8 @@ resource "civo_kubernetes_cluster" "cluster" {
   }
 }
 
+# https://registry.terraform.io/providers/civo/civo/latest/docs/resources/kubernetes_cluster#kubeconfig-3
+# The kube_config attribute is a *string* containing the `kubeconfig` file for the Kubernetes cluster.
 locals {
   kubeconfig_raw  = civo_kubernetes_cluster.cluster.kubeconfig
   kubeconfig_json = yamldecode(local.kubeconfig_raw)
