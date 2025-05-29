@@ -111,7 +111,9 @@ resource "kubernetes_secret_v1" "argocd_cluster_secret" {
   type = "Opaque"
 }
 
-# Optional: raw kubeconfig for debugging or local access
+# Raw `kubeconfig` for debugging or local access
+# This tells Terraform to decode the base64 string before injecting it into the data.kubeconfig field
+# which then gets base64-encoded once more by Kubernetes (as all secret values are).
 resource "kubernetes_secret_v1" "cluster_secret" {
   provider = kubernetes.local
   metadata {
@@ -119,7 +121,7 @@ resource "kubernetes_secret_v1" "cluster_secret" {
     namespace = "argocd"
   }
   data = {
-    kubeconfig = vultr_kubernetes.cluster.kube_config
+    kubeconfig = base64decode(vultr_kubernetes.cluster.kube_config)
   }
   type = "Opaque"
 }
