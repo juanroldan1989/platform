@@ -1,7 +1,8 @@
 resource "vultr_kubernetes" "cluster" {
-  region  = var.region
-  label   = var.cluster_name
-  version = "v1.33.0+1"
+  region          = var.region
+  label           = var.cluster_name
+  version         = "v1.33.0+1"
+  enable_firewall = true
 
   node_pools {
     node_quantity = tonumber(var.node_count)
@@ -11,6 +12,56 @@ resource "vultr_kubernetes" "cluster" {
     min_nodes     = var.min_nodes != "" ? tonumber(var.min_nodes) : 1
     max_nodes     = var.max_nodes != "" ? tonumber(var.max_nodes) : 3
   }
+}
+
+resource "vultr_firewall_rule" "http" {
+  firewall_group_id = vultr_kubernetes.cluster.firewall_group_id
+  ip_type           = "v4"
+  protocol          = "tcp"
+  port              = "80"
+  subnet            = "0.0.0.0"
+  subnet_size       = 0
+  notes             = "Allow Public HTTP access (e.g.: Ingress, Apps)"
+}
+
+resource "vultr_firewall_rule" "https" {
+  firewall_group_id = vultr_kubernetes.cluster.firewall_group_id
+  ip_type           = "v4"
+  protocol          = "tcp"
+  port              = "443"
+  subnet            = "0.0.0.0"
+  subnet_size       = 0
+  notes             = "Allow Public HTTPS access"
+}
+
+resource "vultr_firewall_rule" "k8s_api" {
+  firewall_group_id = vultr_kubernetes.cluster.firewall_group_id
+  ip_type           = "v4"
+  protocol          = "tcp"
+  port              = "6443"
+  subnet            = var.my_public_ip_subnet
+  subnet_size       = var.my_public_ip_subnet_size
+  notes             = "Allow Secure Access to Kubernetes API (e.g.: ArgoCD, kubectl)"
+}
+
+resource "vultr_firewall_rule" "ssh" {
+  firewall_group_id = vultr_kubernetes.cluster.firewall_group_id
+  ip_type           = "v4"
+  protocol          = "tcp"
+  port              = "22"
+  subnet            = var.my_public_ip_subnet
+  subnet_size       = var.my_public_ip_subnet_size
+  notes             = "Allow SSH access (e.g.: debugging, maintenance)"
+}
+
+resource "vultr_firewall_rule" "egress" {
+  firewall_group_id = vultr_kubernetes.cluster.firewall_group_id
+  ip_type           = "v4"
+  protocol          = "tcp"
+  port              = "1-65535"
+  subnet            = "0.0.0.0"
+  subnet_size       = 0
+  notes             = "Allow all outbound traffic (e.g.: pulling container images, APIs)"
 }
 
 # https://registry.terraform.io/providers/vultr/vultr/latest/docs/resources/kubernetes#kube_config-1
