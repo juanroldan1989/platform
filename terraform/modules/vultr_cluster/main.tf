@@ -119,7 +119,7 @@ resource "kubernetes_secret_v1" "cluster_secret" {
     namespace = "argocd"
   }
   data = {
-    kubeconfig = vultr_kubernetes.cluster.kube_config
+    kubeconfig = base64encode(vultr_kubernetes.cluster.kube_config)
   }
   type = "Opaque"
 }
