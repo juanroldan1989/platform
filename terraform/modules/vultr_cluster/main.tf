@@ -13,9 +13,10 @@ resource "vultr_kubernetes" "cluster" {
   }
 }
 
-# Decode the kubeconfig YAML string into a map for safe access
+# https://registry.terraform.io/providers/vultr/vultr/latest/docs/resources/kubernetes#kube_config-1
+# The kube_config attribute is a base64-encoded string containing the `kubeconfig` file for the Kubernetes cluster.
 locals {
-  kubeconfig_raw = vultr_kubernetes.cluster.kube_config
+  kubeconfig_raw  = base64decode(vultr_kubernetes.cluster.kube_config)
   kubeconfig_json = yamldecode(local.kubeconfig_raw)
 }
 
@@ -35,7 +36,6 @@ resource "kubernetes_cluster_role_v1" "argocd_manager" {
   metadata {
     name = "argocd-manager-role"
   }
-
   rule {
     api_groups = ["*"]
     resources  = ["*"]
@@ -85,6 +85,8 @@ resource "kubernetes_secret_v1" "argocd_manager" {
   depends_on = [kubernetes_service_account_v1.argocd_manager]
 }
 
+# This secret registers the `Vultr` cluster with ArgoCD.
+# It uses the `kubeconfig` data from the `Vultr` Kubernetes resource.
 resource "kubernetes_secret_v1" "argocd_cluster_secret" {
   provider = kubernetes.local
   metadata {
@@ -124,9 +126,4 @@ resource "kubernetes_secret_v1" "cluster_secret" {
     kubeconfig = base64decode(vultr_kubernetes.cluster.kube_config)
   }
   type = "Opaque"
-}
-
-output "raw_kubeconfig" {
-  value     = vultr_kubernetes.cluster.kube_config
-  sensitive = true
 }
