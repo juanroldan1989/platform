@@ -5,7 +5,47 @@ resource "civo_network" "cluster" {
 resource "civo_firewall" "cluster" {
   name                 = var.cluster_name
   network_id           = civo_network.cluster.id
-  create_default_rules = true
+  create_default_rules = false # `false` when custom rules are applied
+
+  ingress_rule {
+    label      = "http"
+    protocol   = "tcp"
+    port_range = "80"
+    cidr       = ["0.0.0.0"]
+    action     = "allow"
+  }
+
+  ingress_rule {
+    label      = "https"
+    protocol   = "tcp"
+    port_range = "443"
+    cidr       = ["0.0.0.0"]
+    action     = "allow"
+  }
+
+  ingress_rule {
+    label      = "allow-k8s-api" # access to Kubernetes API server (e.g.: ArgoCD)
+    protocol   = "tcp"
+    port_range = "6443"
+    cidr       = [var.my_public_ip_cidr]
+    action     = "allow"
+  }
+
+  ingress_rule {
+    label      = "ssh"
+    protocol   = "tcp"
+    port_range = "22"
+    cidr       = [var.my_public_ip_cidr]
+    action     = "allow"
+  }
+
+  egress_rule {
+    label      = "all"
+    protocol   = "tcp"
+    port_range = "1-65535"
+    cidr       = ["0.0.0.0/0"]
+    action     = "allow"
+  }
 }
 
 resource "civo_kubernetes_cluster" "cluster" {
