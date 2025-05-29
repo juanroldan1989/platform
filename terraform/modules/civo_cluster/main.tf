@@ -9,9 +9,10 @@ resource "civo_firewall" "cluster" {
 }
 
 resource "civo_kubernetes_cluster" "cluster" {
-  name        = var.cluster_name
-  network_id  = civo_network.cluster.id
-  firewall_id = civo_firewall.cluster.id
+  name             = var.cluster_name
+  write_kubeconfig = true
+  network_id       = civo_network.cluster.id
+  firewall_id      = civo_firewall.cluster.id
 
   pools {
     label      = "${var.cluster_name}-pool"
@@ -20,82 +21,16 @@ resource "civo_kubernetes_cluster" "cluster" {
   }
 }
 
+locals {
+  kubeconfig_raw  = civo_kubernetes_cluster.cluster.kubeconfig
+  kubeconfig_json = yamldecode(local.kubeconfig_raw)
+}
+
 provider "kubernetes" {
   host                   = civo_kubernetes_cluster.cluster.api_endpoint
-  client_certificate     = base64decode(yamldecode(civo_kubernetes_cluster.cluster.kubeconfig).users[0].user.client-certificate-data)
-  client_key             = base64decode(yamldecode(civo_kubernetes_cluster.cluster.kubeconfig).users[0].user.client-key-data)
-  cluster_ca_certificate = base64decode(yamldecode(civo_kubernetes_cluster.cluster.kubeconfig).clusters[0].cluster.certificate-authority-data)
-}
-
-resource "kubernetes_cluster_role_v1" "argocd_manager" {
-  metadata {
-    name = "argocd-manager-role"
-  }
-
-  rule {
-    api_groups = ["*"]
-    resources  = ["*"]
-    verbs      = ["*"]
-  }
-  rule {
-    non_resource_urls = ["*"]
-    verbs             = ["*"]
-  }
-}
-
-resource "kubernetes_cluster_role_binding_v1" "argocd_manager" {
-  metadata {
-    name = "argocd-manager-role-binding"
-  }
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    kind      = "ClusterRole"
-    name      = kubernetes_cluster_role_v1.argocd_manager.metadata.0.name
-  }
-  subject {
-    kind      = "ServiceAccount"
-    name      = kubernetes_service_account_v1.argocd_manager.metadata.0.name
-    namespace = "kube-system"
-  }
-}
-
-resource "kubernetes_service_account_v1" "argocd_manager" {
-  metadata {
-    name      = "argocd-manager"
-    namespace = "kube-system"
-  }
-  secret {
-    name = "argocd-manager-token"
-  }
-}
-
-resource "kubernetes_secret_v1" "argocd_manager" {
-  metadata {
-    name      = "argocd-manager-token"
-    namespace = "kube-system"
-    annotations = {
-      "kubernetes.io/service-account.name" = "argocd-manager"
-    }
-  }
-  type       = "kubernetes.io/service-account-token"
-  depends_on = [kubernetes_service_account_v1.argocd_manager]
-}
-
-resource "kubernetes_namespace_v1" "external_dns" {
-  metadata {
-    name = "external-dns"
-  }
-}
-
-resource "kubernetes_secret_v1" "external_dns" {
-  metadata {
-    name      = "external-dns-secrets"
-    namespace = kubernetes_namespace_v1.external_dns.metadata.0.name
-  }
-  data = {
-    token = var.civo_token
-  }
-  type = "Opaque"
+  client_certificate     = try(base64decode(local.kubeconfig_json["users"][0]["user"]["client-certificate-data"]), "")
+  client_key             = try(base64decode(local.kubeconfig_json["users"][0]["user"]["client-key-data"]), "")
+  cluster_ca_certificate = try(base64decode(local.kubeconfig_json["clusters"][0]["cluster"]["certificate-authority-data"]), "")
 }
 
 provider "kubernetes" {
@@ -112,16 +47,16 @@ resource "kubernetes_secret_v1" "argocd_cluster_secret" {
     }
   }
   data = {
-    name = var.cluster_name
-    server = civo_kubernetes_cluster.cluster.api_endpoint
+    name             = var.cluster_name
+    server           = civo_kubernetes_cluster.cluster.api_endpoint
     clusterResources = "true"
     config = jsonencode({
-      "bearerToken" = kubernetes_secret_v1.argocd_manager.data.token
-      "tlsClientConfig" = {
-        "insecure" = false
-        "caData"   = yamldecode(civo_kubernetes_cluster.cluster.kubeconfig).clusters[0].cluster.certificate-authority-data
-        "certData" = yamldecode(civo_kubernetes_cluster.cluster.kubeconfig).users[0].user.client-certificate-data
-        "keyData"  = yamldecode(civo_kubernetes_cluster.cluster.kubeconfig).users[0].user.client-key-data
+      # Argocd uses Civo's `kubeconfig` data to authenticate with the Civo Kubernetes cluster.
+      tlsClientConfig = {
+        insecure = false
+        caData   = local.kubeconfig_json["clusters"][0]["cluster"]["certificate-authority-data"]
+        certData = local.kubeconfig_json["users"][0]["user"]["client-certificate-data"]
+        keyData  = local.kubeconfig_json["users"][0]["user"]["client-key-data"]
       }
     })
   }
@@ -139,4 +74,9 @@ resource "kubernetes_secret_v1" "cluster_secret" {
     kubeconfig = civo_kubernetes_cluster.cluster.kubeconfig
   }
   type = "Opaque"
+}
+
+output "raw_kubeconfig" {
+  value     = civo_kubernetes_cluster.cluster.kubeconfig
+  sensitive = true
 }
