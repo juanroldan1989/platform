@@ -32,58 +32,58 @@ provider "kubernetes" {
   alias = "local"
 }
 
-resource "kubernetes_cluster_role_v1" "argocd_manager" {
-  metadata {
-    name = "argocd-manager-role"
-  }
-  rule {
-    api_groups = ["*"]
-    resources  = ["*"]
-    verbs      = ["*"]
-  }
-  rule {
-    non_resource_urls = ["*"]
-    verbs             = ["*"]
-  }
-}
+# resource "kubernetes_cluster_role_v1" "argocd_manager" {
+#   metadata {
+#     name = "argocd-manager-role"
+#   }
+#   rule {
+#     api_groups = ["*"]
+#     resources  = ["*"]
+#     verbs      = ["*"]
+#   }
+#   rule {
+#     non_resource_urls = ["*"]
+#     verbs             = ["*"]
+#   }
+# }
 
-resource "kubernetes_cluster_role_binding_v1" "argocd_manager" {
-  metadata {
-    name = "argocd-manager-role-binding"
-  }
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    kind      = "ClusterRole"
-    name      = kubernetes_cluster_role_v1.argocd_manager.metadata[0].name
-  }
-  subject {
-    kind      = "ServiceAccount"
-    name      = kubernetes_service_account_v1.argocd_manager.metadata[0].name
-    namespace = "kube-system"
-  }
-}
+# resource "kubernetes_cluster_role_binding_v1" "argocd_manager" {
+#   metadata {
+#     name = "argocd-manager-role-binding"
+#   }
+#   role_ref {
+#     api_group = "rbac.authorization.k8s.io"
+#     kind      = "ClusterRole"
+#     name      = kubernetes_cluster_role_v1.argocd_manager.metadata[0].name
+#   }
+#   subject {
+#     kind      = "ServiceAccount"
+#     name      = kubernetes_service_account_v1.argocd_manager.metadata[0].name
+#     namespace = "kube-system"
+#   }
+# }
 
-resource "kubernetes_service_account_v1" "argocd_manager" {
-  metadata {
-    name      = "argocd-manager"
-    namespace = "kube-system"
-  }
-  secret {
-    name = "argocd-manager-token"
-  }
-}
+# resource "kubernetes_service_account_v1" "argocd_manager" {
+#   metadata {
+#     name      = "argocd-manager"
+#     namespace = "kube-system"
+#   }
+#   secret {
+#     name = "argocd-manager-token"
+#   }
+# }
 
-resource "kubernetes_secret_v1" "argocd_manager" {
-  metadata {
-    name      = "argocd-manager-token"
-    namespace = "kube-system"
-    annotations = {
-      "kubernetes.io/service-account.name" = "argocd-manager"
-    }
-  }
-  type       = "kubernetes.io/service-account-token"
-  depends_on = [kubernetes_service_account_v1.argocd_manager]
-}
+# resource "kubernetes_secret_v1" "argocd_manager" {
+#   metadata {
+#     name      = "argocd-manager-token"
+#     namespace = "kube-system"
+#     annotations = {
+#       "kubernetes.io/service-account.name" = "argocd-manager"
+#     }
+#   }
+#   type       = "kubernetes.io/service-account-token"
+#   depends_on = [kubernetes_service_account_v1.argocd_manager]
+# }
 
 # This secret registers the `Vultr` cluster with ArgoCD.
 # It uses the `kubeconfig` data from the `Vultr` Kubernetes resource.
