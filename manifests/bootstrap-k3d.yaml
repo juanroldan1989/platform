@@ -28,7 +28,7 @@ metadata:
   name: argocd-bootstrap-installer
   namespace: argocd
 spec:
-  backoffLimit: 0
+  backoffLimit: 3  # Retry up to 3 times if the Job fails
   template:
     metadata:
       labels:
@@ -60,8 +60,6 @@ kind: Job
 metadata:
   name: argocd-app-bootstrap
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "40"
 spec:
   backoffLimit: 2
   template:
@@ -82,7 +80,13 @@ spec:
                 echo "[INFO] Waiting for argocd-server..."; sleep 5;
               done && \
               echo "[INFO] ArgoCD is ready. Applying app-of-apps..." && \
-              kubectl apply -f https://raw.githubusercontent.com/juanroldan1989/platform/main/argo/app-of-apps.yaml
+              kubectl apply -f https://raw.githubusercontent.com/juanroldan1989/platform/main/argo/app-of-apps.yaml && \
+              echo "[INFO] Restoring Sealed Secrets key..." && \
+              kubectl apply -f /platform/.sealed-secrets/sealed-secrets-key.yaml -n kube-system
+          volumeMounts:
+            - name: sealed-key
+              mountPath: /platform/.sealed-secrets
+              readOnly: true
           resources:
             requests:
               cpu: 100m
@@ -90,4 +94,8 @@ spec:
             limits:
               cpu: 200m
               memory: 256Mi
+      volumes:
+        - name: sealed-key
+          hostPath:
+            path: /platform/.sealed-secrets
       restartPolicy: OnFailure

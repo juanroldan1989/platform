@@ -2,35 +2,32 @@
 
 set -euo pipefail
 
+# --- Configurable variables ---
 NAMESPACE="crossplane-system"
 SECRET_NAME="crossplane-secrets"
 OUTPUT_FILE="manifests/bootstrap/crossplane/0-crossplane-sealed-secrets.yaml"
 
-# 1. Extract the Sealed Secrets controller public key
-echo "[INFO] Extracting Sealed Secrets controller public key from cluster..."
-kubectl -n kube-system get secret -l sealedsecrets.bitnami.com/sealed-secrets-key \
-  -o jsonpath="{.items[0].data['tls\.crt']}" | base64 -d > /tmp/controller-public.pem
+# --- Ensure required environment variables are set ---
+: "${CIVO_TOKEN:?CIVO_TOKEN is required}"
+: "${VULTR_TOKEN:?VULTR_TOKEN is required}"
 
-# 2. Define your secret as plaintext YAML
-echo "[INFO] Creating temporary plaintext secret manifest..."
-cat <<EOF > /tmp/tmp-plain-secret.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ${SECRET_NAME}
-  namespace: ${NAMESPACE}
-type: Opaque
-stringData:
-  VULTR_TOKEN: VULTR_TOKEN
-  TF_VAR_vultr_token: VULTR_TOKEN
-EOF
+# --- Create the base secret YAML with annotations and type ---
+kubectl create secret generic "${SECRET_NAME}" \
+  --namespace "${NAMESPACE}" \
+  --from-literal=CIVO_TOKEN="${CIVO_TOKEN}" \
+  --from-literal=TF_VAR_civo_token="${CIVO_TOKEN}" \
+  --from-literal=VULTR_TOKEN="${VULTR_TOKEN}" \
+  --from-literal=TF_VAR_vultr_token="${VULTR_TOKEN}" \
+  --dry-run=client -o yaml | \
+  yq eval '.metadata.annotations."argocd.argoproj.io/sync-wave" = "5" | .type = "Opaque"' - \
+  > "${SECRET_NAME}.yaml"
 
-# 3. Seal the secret using the extracted public key
-echo "[INFO] Sealing the secret..."
-kubeseal --format=yaml --cert=/tmp/controller-public.pem \
-  < /tmp/tmp-plain-secret.yaml > "${OUTPUT_FILE}"
+# --- Seal the secret ---
+kubeseal --format=yaml \
+  --cert .sealed-secrets/sealed-secrets-public.pem \
+  < "${SECRET_NAME}.yaml" > "${OUTPUT_FILE}"
 
-echo "[SUCCESS] SealedSecret written to ${OUTPUT_FILE}"
+# --- Cleanup ---
+rm -f "${SECRET_NAME}.yaml"
 
-# 4. Cleanup
-rm /tmp/tmp-plain-secret.yaml /tmp/controller-public.pem
+echo "✅ SealedSecret created at ${OUTPUT_FILE}"

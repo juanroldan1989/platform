@@ -17,48 +17,59 @@ The encrypted secret (a `SealedSecret`) can be safely stored in Git and will be 
 
 * **Namespace**: `crossplane-system`
 * **Secret Name**: `crossplane-secrets`
-* **Usage**: Injects credentials needed by Crossplane Terraform Providers (e.g., `VULTR_TOKEN`, `TF_VAR_vultr_token`).
+* **Usage**: Injects credentials needed by Crossplane Terraform Providers (e.g., `VULTR_TOKEN`, `CIVO_TOKEN`).
 * **SealedSecret File Location**:
 
 ```
 manifests/bootstrap/crossplane/0-crossplane-sealed-secrets.yaml
 ```
 
-* **Applied via**: ArgoCD as part of the `crossplane` app.
+* **Applied via**: ArgoCD as part of the `crossplane-terraform-provider` ArgoCD app.
 
-## Script: `seal-secret.sh`
+## Script: `seal-secrets.sh`
 
-This script automates the process of creating a `SealedSecret` for storing sensitive environment variables:
+- Automates secure SealedSecret generation using environment tokens.
+- Script Actions:
 
-### Steps Performed by the Script
+1. Generates a single Secret (crossplane-secrets) containing:
 
-1. **Extract Public Key from Sealed Secrets Controller**:
+- `CIVO_TOKEN`, `TF_VAR_civo_token`
+- `VULTR_TOKEN`, `TF_VAR_vultr_token`
 
-* Uses `kubectl` to get the public key from the controller running in the cluster.
+2. Adds annotations and sets type:
 
-2. **Create Temporary Plain Secret**:
+- `argocd.argoproj.io/sync-wave: "5"`
+- `type: Opaque`
 
-* Uses environment variable `VULTR_TOKEN` to create a temporary `Secret` manifest with sensitive values.
+3. Encrypts the secret using `kubeseal` and the **re-used public key:**
 
-3. **Seal the Secret**:
+- Output: `manifests/bootstrap/crossplane/0-crossplane-sealed-secrets.yaml`
+- Deletes any temporary plaintext secret files after sealing
 
-* Uses `kubeseal` CLI to encrypt the secret using the public key.
-* Output is written to:
+### Persistent Encryption Key
 
-```
-manifests/bootstrap/crossplane/0-crossplane-sealed-secrets.yaml
-```
+To avoid re-sealing secrets every time a new cluster is created:
 
-4. **Clean up**:
+- We re-use the **same public certificate** (`./sealed-secrets/sealed-secrets-public.pem`) for all management clusters.
 
-* Deletes temporary plaintext files.
+- This allows us to **seal secrets once and apply them to any cluster** where the **matching Sealed Secrets controller private key** is configured
 
-### When to Run This Script
+##  Key Details
 
-* Every time you:
+| Property             | Value                                                             |
+| -------------------- | ----------------------------------------------------------------- |
+| **Namespace**        | `crossplane-system`                                               |
+| **Secret Name**      | `crossplane-secrets`                                              |
+| **Sealed File Path** | `manifests/bootstrap/crossplane/0-crossplane-sealed-secrets.yaml` |
+| **Mounted By**       | Crossplane Terraform Provider via `envFrom`                       |
+| **Sealed Using**     | `sealed-secrets-public.pem` (checked into `.sealed-secrets/`)     |
+| **Managed By**       | ArgoCD (part of `crossplane` app sync wave)                       |
 
-- **Create a new cluster** where Sealed Secrets is deployed (new key pair generated)
-- **Update tokens** (e.g.: new `VULTR_TOKEN`)
+## When to Run This Script
+
+- When rotating tokens (e.g.: expired or revoked `Civo/Vultr` tokens)
+- When changing values inside the sealed secret.
+- If you replace the `public key` in `.sealed-secrets/` (only needed if rotation is manual)
 
 ## Troubleshooting
 

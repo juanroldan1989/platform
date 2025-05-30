@@ -27,16 +27,40 @@ cd platform
 
 - This `mgmt-cluster` will also have additional manifests that install `argocd` to the new cluster with a few default configurations.
 
+#### Creating `mgmt-cluster` for the first time:
+
+1. Create cluster:
+
 ```sh
 k3d cluster create mgmt-cluster \
-  --agents "1" \
+  --agents "2" \
   --agents-memory "4096m" \
   --volume $PWD/manifests/bootstrap-k3d.yaml:/var/lib/rancher/k3s/server/manifests/bootstrap-k3d.yaml
 ```
 
-The result will be a local bootstrap k3d cluster with the necessary components for app and infrastructure management.
+2. Extract `public-key` associated with `Sealed Secrets`:
+
+3. Store this `public-key` within `./sealed-secrets/sealed-secrets-key.yaml`
+
+#### Creating `mgmt-cluster` for future times:
+
+1. Create cluster (include `public key` for `Sealed Secrets`):
+
+```sh
+k3d cluster create mgmt-cluster \
+  --agents "2" \
+  --agents-memory "4096m" \
+  --volume $PWD/manifests/bootstrap-k3d.yaml:/var/lib/rancher/k3s/server/manifests/bootstrap-k3d.yaml \
+  --volume $PWD/.sealed-secrets:/platform/.sealed-secrets
+```
+
+------
+
+The result will be a **local bootstrap k3d cluster** with the necessary components **for app and infrastructure management**.
 
 ### 1.2 Cloud Provider API Tokens
+
+**These steps are only necessary for the first time mgmt-cluster is created**
 
 - [Civo Dashboard](https://dashboard.civo.com/security)
 - [Vultr Dashboard](https://my.vultr.com/settings/#settingsapi)

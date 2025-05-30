@@ -1,0 +1,2 @@
+# Ignore the sealed secrets controller's private key
+.sealed-secrets
