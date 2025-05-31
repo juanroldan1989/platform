@@ -1,0 +1,7 @@
+controller:
+  service:
+    annotations:
+      service.beta.kubernetes.io/civo-loadbalancer-protocol: http
+    type: LoadBalancer
+  ingressClassResource:
+    default: true

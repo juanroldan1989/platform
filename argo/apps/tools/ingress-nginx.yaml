@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ingress-nginx
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: london
+            namespace: ingress-nginx
+          # - name: newyork
+            # namespace: ingress-nginx
+  template:
+    metadata:
+      name: ingress-nginx-{{name}}
+      annotations:
+        argocd.argoproj.io/description: "Deploys ingress-nginx to {{name}} cluster for external traffic routing"
+    spec:
+      project: default
+      destination:
+        name: '{{name}}'
+        namespace: '{{namespace}}'
+      sources:
+        - repoURL: https://kubernetes.github.io/ingress-nginx
+          chart: ingress-nginx
+          targetRevision: 4.10.0
+          helm:
+            valueFiles:
+              - $values/registry/clusters/{{name}}/ingress-nginx/values.yaml
+        - repoURL: https://github.com/juanroldan1989/platform
+          targetRevision: main
+          ref: values
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

@@ -1,0 +1,7 @@
+controller:
+  service:
+    annotations:
+      metallb.universe.tf/address-pool: default
+    type: LoadBalancer
+  ingressClassResource:
+    default: true
