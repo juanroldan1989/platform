@@ -1,4 +1,4 @@
-# Bootstrap
+# Bootstrap `mgmt-cluster` in local machine
 
 ### Prerequisites
 

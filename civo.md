@@ -1,84 +1,105 @@
-# London Cluster Setup (CIVO Cloud)
+# CIVO Cluster Integration Guide (`london` Example)
 
-This document describes how to extract the `london` cluster kubeconfig, connect to it locally, restore your `k3d`-based management context, and understand the networking and GitOps configuration between your local ArgoCD instance and the remote `london` cluster on CIVO Cloud.
+This document outlines how to interact with remote Kubernetes cluster hosted on [CIVO Cloud](https://www.civo.com):
 
----
+- how to extract kubeconfig access
 
-## 1. Extracting the `london` kubeconfig and using it locally
+- how to restore local context (`mgmt-cluster`)
 
-1. List the secrets from the namespace where your workspace is running (e.g. `argocd` or Crossplane-managed namespace):
+- how `london` workload cluster gets automatically registered in ArgoCD, running inside cloud management plane.
 
-```bash
-kubectl get secret -n argocd
-```
+## 1. Extract and use `london` kubeconfig locally
 
-2. Extract the kubeconfig from the `london-kubeconfig` secret:
+When a new cluster like `london` is provisioned via Terraform,
 
-```bash
-kubectl get secret london-kubeconfig -n argocd -o jsonpath='{.data.value}' | base64 -d > london.kubeconfig
-```
+its kubeconfig is automatically stored as a Kubernetes secret inside the `argocd` namespace of the `mgmt-cluster`.
 
-3. Use it locally by setting the environment variable:
+To manually retrieve and use it:
 
 ```bash
-export KUBECONFIG=./london.kubeconfig
-```
+# 1. Extract kubeconfig to local file
+kubectl get secret london-kubeconfig -n argocd -o jsonpath='{.data.kubeconfig}' | base64 -d > london.kubeconfig
 
-4. Confirm access to the cluster:
+# 2. Point KUBECONFIG to it
+export KUBECONFIG=$PWD/london.kubeconfig
 
-```bash
+# 3. Confirm access
 kubectl config get-contexts
 kubectl get nodes
 ```
 
----
+## 2. Restore Access to Local Management Cluster (`mgmt-cluster`)
 
-## 2. Resetting KUBECONFIG to local k3d `mgmt-cluster`
-
-If you want to return to using your local management cluster:
+If you want to return to using management cluster:
 
 ```bash
 unset KUBECONFIG
-kubectl config use-context k3d-mgmt-cluster
+kubectl config use-context mgmt-cluster
 ```
 
----
+## 3. How ArgoCD registers `london` cluster (fully automated)
 
-## 3. ArgoCD connection to the `london` cluster
+Terraform module includes logic that:
 
-Your local `k3d-mgmt-cluster` runs ArgoCD.
+- Reads the kubeconfig from the newly created `civo_kubernetes_cluster.london` resource
 
-The `london` cluster is added via `argocd cluster add` using its external API address (e.g. `https://74.220.23.87:6443`).
+- Parses the `CA`, `client certificate` and `key`
 
-ArgoCD connects via Token/Basic Auth credentials stored from the extracted kubeconfig and uses that to sync applications to the remote cluster.
+- Creates a `Kubernetes Secret` of type `Opaque` inside `mgmt-cluster/argocd` with this structure:
 
-This connection is visible in the ArgoCD UI under the **Settings > Clusters** section, where the `london` cluster will appear as healthy if accessible.
+```yaml
+metadata:
+  name: london
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: cluster
+data:
+  name: london
+  server: https://<external-api-endpoint>:6443
+  clusterResources: true
+  config:
+    tlsClientConfig:
+      insecure: false
+      caData: <...>
+      certData: <...>
+      keyData: <...>
+```
 
----
+- This secret is picked up by `ArgoCD` automatically
 
-## 4. CIVO Firewall Configuration for ArgoCD Connectivity
+- and the `london` cluster will appear in the `Settings > Clusters` view within the UI.
 
-To ensure ArgoCD can communicate with the `london` cluster API and that sync operations succeed, you need to:
+- ArgoCD connects via `Token/Basic` Auth credentials stored from the extracted `kubeconfig`
 
-* Allow **TCP port 6443** from the **host machine's IP** (where the local `k3d` cluster runs).
-* Optionally allow **TCP port 22** if you use SSH for troubleshooting.
-* Ensure **port 443 and 80** are open from `0.0.0.0/0` for ingress purposes.
+- and uses that to `sync` applications to the `remote` cluster.
 
-Example Inbound Rules on CIVO Firewall:
+## 4. Firewall Rules: Dynamic Allowlist for ArgoCD Control Plane
 
-| Protocol | Port | Source CIDR      | Purpose        |
-| -------- | ---- | ---------------- | -------------- |
-| TCP      | 6443 | your.local.ip/32 | Kubernetes API |
-| TCP      | 80   | 0.0.0.0/0        | HTTP ingress   |
-| TCP      | 443  | 0.0.0.0/0        | HTTPS ingress  |
+To ensure ArgoCD can reach the `Civo` API server of `london` cluster,
 
-Once these are set, ArgoCD will report the `london` cluster as **healthy**, and sync operations like installing `ingress-nginx` will succeed.
+we dynamically allow the `public IP` of `mgmt-cluster` into the firewall rules.
 
----
+- This is automated via Terraform using:
 
-## 5. Tools/Addons to be Installed in `london`
+```sh
+ingress_rule {
+  label      = "allow-k8s-api"
+  protocol   = "tcp"
+  port_range = "6443"
+  cidr       = [local.mgmt_cluster_public_ip_cidr] # "mgmt-cluster" Civo Cluster's External IP
+  action     = "allow"
+}
+```
 
-The following tools and addons are being installed (or are planned) within the `london` cluster:
+This guarantees connectivity for `ArgoCD` to connect over the Kubernetes API and perform:
+
+1. `health checks`
+2. **tools provisioning**
+3. **applications deployment**
+
+## 5. Tools and Addons installed into the `london` cluster
+
+- The following addons are provisioned declaratively via **ArgoCD ApplicationSets** and **environment-specific** value overrides:
 
 | Tool             | Purpose                                              |
 | ---------------- | ---------------------------------------------------- |
@@ -88,8 +109,47 @@ The following tools and addons are being installed (or are planned) within the `
 | `sealed-secrets` | Encrypt Kubernetes secrets for GitOps workflows      |
 | `metrics-server` | HPA metrics (CPU/Memory) support                     |
 
-All of these are deployed using ArgoCD `Application` manifests with cluster-specific value overrides.
+- These apps are deployed into the `london` cluster only after it has been registered and marked healthy by `ArgoCD`.
+
+## 6. Sync Wave Behavior: Handling timing for remote clusters (`london`)
+
+Since the entire provisioning process is **fully GitOps-managed**,
+
+`ingress-nginx` and other apps **wait until london is healthy.**
+
+ArgoCD's `sync-wave` mechanism ensures that:
+
+- Workload clusters are provisioned **(wave 0–10)**
+
+- Clusters are registered in ArgoCD via Secret **(wave 15–20)**
+
+- Ingress, DNS, cert-manager and applications are applied **only after ArgoCD can connect to the remove cluster (wave 50+)**
+
+Example ApplicationSet snippet:
+
+```yaml
+metadata:
+  name: ingress-nginx
+  annotations:
+    argocd.argoproj.io/sync-wave: "50"
+spec:
+  generators:
+    - list:
+        elements:
+          - name: london
+            namespace: ingress-nginx
+```
+
+## 7. Summary
+
+- Entire cluster provisioning is **declarative and automated**
+
+- Cross-cluster communication is secured via **dynamic firewall allowlists**
+
+- `ArgoCD` **connects and syncs to remote clusters** without manual steps
+
+- All infrastructure state is stored via **Git + Kubernetes-native secrets**
 
 ---
 
-This setup allows full GitOps-based lifecycle management of the `london` workload cluster from your local `mgmt-cluster`, maintaining clear separation and scalability across environments.
+This setup allows full GitOps-based lifecycle management of the `london` workload cluster from local `mgmt-cluster`, maintaining clear separation and scalability across environments.

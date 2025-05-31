@@ -18,10 +18,3 @@ variable "node_type" {
   description = "Type of nodes in the Civo Kubernetes cluster"
   default = "g4s.kube.medium"
 }
-
-# TODO: Remove or replace with ArgoCD egress IP once GitOps setup is stable
-variable "my_public_ip_cidr" {
-  type        = string
-  description = "Your public IP address in CIDR notation"
-  default     = "80.56.186.251/32"
-}

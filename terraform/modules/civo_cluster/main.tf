@@ -1,3 +1,13 @@
+provider "http" {}
+
+data "http" "my_public_ip" {
+  url = "https://api.ipify.org"
+}
+
+locals {
+  mgmt_cluster_public_ip_cidr = "${trimspace(data.http.my_public_ip.response_body)}/32"
+}
+
 resource "civo_network" "cluster" {
   label = var.cluster_name
 }
@@ -27,7 +37,7 @@ resource "civo_firewall" "cluster" {
     label      = "allow-k8s-api" # access to Kubernetes API server (e.g.: ArgoCD)
     protocol   = "tcp"
     port_range = "6443"
-    cidr       = [var.my_public_ip_cidr]
+    cidr       = [local.mgmt_cluster_public_ip_cidr]
     action     = "allow"
   }
 
@@ -35,7 +45,7 @@ resource "civo_firewall" "cluster" {
     label      = "ssh"
     protocol   = "tcp"
     port_range = "22"
-    cidr       = [var.my_public_ip_cidr]
+    cidr       = [local.mgmt_cluster_public_ip_cidr]
     action     = "allow"
   }
 
