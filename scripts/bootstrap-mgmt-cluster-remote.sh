@@ -3,7 +3,7 @@
 # Customize these variables
 CLUSTER_NAME="mgmt-cluster"
 NODE_COUNT=1
-NODE_SIZE="g4s.kube.medium"
+NODE_SIZE="g4s.kube.large"
 REGION="LON1"
 
 echo "🌐 Creating Civo Kubernetes cluster: $CLUSTER_NAME..."
@@ -27,7 +27,7 @@ unset KUBECONFIG
 kubectl config use-context mgmt-cluster
 
 echo "🔐 Injecting Sealed Secrets public key..."
-kubectl apply -f .sealed-secrets/sealed-secrets-key.yaml -n kube-system
+kubectl apply -f .sealed-secrets/mgmt/sealed-secrets-key.yaml -n kube-system
 
 echo "🔄 Provisioning mgmt-cluster with essentials ..."
 kubectl apply -f manifests/bootstrap/mgmt-cluster.yaml

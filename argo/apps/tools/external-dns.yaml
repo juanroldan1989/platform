@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: sealed-secrets
+  name: external-dns
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "50"
 spec:
   generators:
     - clusters:
@@ -17,23 +17,24 @@ spec:
             in-cluster: "true"
   template:
     metadata:
-      name: sealed-secrets-{{name}}
+      name: external-dns-{{name}}
       annotations:
-        argocd.argoproj.io/description: "Deploys sealed-secrets to {{name}} cluster"
+        argocd.argoproj.io/description: "Deploys external-dns to {{name}} cluster for managing DNS records"
     spec:
       project: default
       destination:
         name: '{{name}}'
-        namespace: 'kube-system'
+        namespace: '{{namespace}}'
       sources:
-        - repoURL: https://bitnami-labs.github.io/sealed-secrets
-          chart: sealed-secrets
-          targetRevision: 2.15.3
+        - repoURL: https://kubernetes-sigs.github.io/external-dns/
+          chart: external-dns
+          targetRevision: 1.14.3
           helm:
-            values: |
-              fullnameOverride: sealed-secrets-controller
-              service:
-                type: ClusterIP
+            valueFiles:
+              - $values/registry/clusters/{{name}}/external-dns/values.yaml
+        - repoURL: https://github.com/juanroldan1989/platform
+          targetRevision: main
+          ref: values
       syncPolicy:
         automated:
           selfHeal: true
