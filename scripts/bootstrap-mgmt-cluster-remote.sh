@@ -30,6 +30,6 @@ echo "🔐 Injecting Sealed Secrets public key..."
 kubectl apply -f .sealed-secrets/sealed-secrets-key.yaml -n kube-system
 
 echo "🔄 Provisioning mgmt-cluster with essentials ..."
-kubectl apply -f manifests/bootstrap-k3d.yaml
+kubectl apply -f manifests/bootstrap/mgmt-cluster.yaml
 
 echo "✅ Bootstrap completed. ArgoCD should self-manage itself shortly."

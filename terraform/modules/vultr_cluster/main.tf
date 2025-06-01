@@ -1,3 +1,13 @@
+provider "http" {}
+
+data "http" "my_public_ip" {
+  url = "https://api.ipify.org"
+}
+
+locals {
+  mgmt_cluster_public_ip_cidr = trimspace(data.http.my_public_ip.response_body)
+}
+
 resource "vultr_kubernetes" "cluster" {
   region          = var.region
   label           = var.cluster_name
@@ -39,8 +49,8 @@ resource "vultr_firewall_rule" "k8s_api" {
   ip_type           = "v4"
   protocol          = "tcp"
   port              = "6443"
-  subnet            = var.my_public_ip_subnet
-  subnet_size       = var.my_public_ip_subnet_size
+  subnet            = local.mgmt_cluster_public_ip_cidr
+  subnet_size       = 32
   notes             = "Allow Secure Access to Kubernetes API (e.g.: ArgoCD, kubectl)"
 }
 
@@ -49,8 +59,8 @@ resource "vultr_firewall_rule" "ssh" {
   ip_type           = "v4"
   protocol          = "tcp"
   port              = "22"
-  subnet            = var.my_public_ip_subnet
-  subnet_size       = var.my_public_ip_subnet_size
+  subnet            = local.mgmt_cluster_public_ip_cidr
+  subnet_size       = 32
   notes             = "Allow SSH access (e.g.: debugging, maintenance)"
 }
 

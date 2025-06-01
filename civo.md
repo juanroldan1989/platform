@@ -1,43 +1,109 @@
-# CIVO Cluster Integration Guide (`london` Example)
+# CIVO Kubernetes Cluster Integration (`london`)
 
-This document outlines how to interact with remote Kubernetes cluster hosted on [CIVO Cloud](https://www.civo.com):
+This document outlines:
 
-- how to extract kubeconfig access
+- how to access the remote `london` Kubernetes cluster hosted on `CIVO` Cloud
+- using a `GitOps-first approach` and `mgmt-cluster` as a secure control plane
 
-- how to restore local context (`mgmt-cluster`)
+For references:
 
-- how `london` workload cluster gets automatically registered in ArgoCD, running inside cloud management plane.
+- `mgmt-cluster` is hosted in CIVO cloud
+- `workload` clusters are hosted in CIVO cloud (`london`) and Vultr cloud (`newyork`)
 
-## 1. Extract and use `london` kubeconfig locally
+## Use `mgmt-cluster` as a Trusted Gateway (Toolbox Pod as a Bastion)
 
-When a new cluster like `london` is provisioned via Terraform,
+Since:
 
-its kubeconfig is automatically stored as a Kubernetes secret inside the `argocd` namespace of the `mgmt-cluster`.
+- `mgmt-cluster` has firewall access to `london` cluster's Kubernetes API (port `6443`)
 
-To manually retrieve and use it:
+- `ArgoCD` is deployed inside `mgmt-cluster`
 
-```bash
-# 1. Extract kubeconfig to local file
-kubectl get secret london-kubeconfig -n argocd -o jsonpath='{.data.kubeconfig}' | base64 -d > london.kubeconfig
+- Infrastructure is provisioned via **GitOps (ArgoCD + Crossplane + Terraform)**
 
-# 2. Point KUBECONFIG to it
-export KUBECONFIG=$PWD/london.kubeconfig
+We introduce a **lightweight toolbox pod** that acts as a bastion container inside the `mgmt-cluster`
 
-# 3. Confirm access
-kubectl config get-contexts
-kubectl get nodes
-```
+Allowing access to any workload cluster (e.g.: `london`) securely and without exposing your local machine.
 
-## 2. Restore Access to Local Management Cluster (`mgmt-cluster`)
+### Why a Toolbox pod?
 
-If you want to return to using management cluster:
+- Avoid whitelisting local IP in `Civo` firewall rules
+
+- Perform **debugging** or apply temporary commands securely
+
+- **GitOps-friendly:** defined as a YAML manifest inside the repo
+
+### 1. Access the toolbox pod inside mgmt-cluster
+
+- Ensure you're pointing to `mgmt-cluster` context (already provisioned by `scripts/bootstrap-mgmt-cluster-remote.sh`):
 
 ```bash
 unset KUBECONFIG
 kubectl config use-context mgmt-cluster
 ```
 
-## 3. How ArgoCD registers `london` cluster (fully automated)
+- Exec into the running `toolbox` pod:
+
+```bash
+kubectl exec -it toolbox -n default -- bash
+```
+
+### 2. Extract and use `london` kubeconfig
+
+When a new cluster like `london` is provisioned via Terraform,
+
+its `kubeconfig` is automatically stored as a Kubernetes secret inside the `argocd` namespace of the `mgmt-cluster`.
+
+To retrieve and use it within `toolbox` pod:
+
+- Extract kubeconfig into a writable path:
+
+```bash
+I have no name!@toolbox:/$ kubectl get secret london-kubeconfig -n argocd -o jsonpath='{.data.kubeconfig}' | base64 -d > /tmp/london.kubeconfig
+```
+
+- Point kubeconfig environment variable to it:
+
+```bash
+I have no name!@toolbox:/$ export KUBECONFIG=/tmp/london.kubeconfig
+```
+
+- Confirm access:
+
+```bash
+I have no name!@toolbox:/$ kubectl get nodes
+NAME                                          STATUS   ROLES    AGE   VERSION
+k3s-london-1645-cd5830-node-pool-9f8b-ho3in   Ready    <none>   53m   v1.28.7+k3s1
+k3s-london-1645-cd5830-node-pool-9f8b-r7pdw   Ready    <none>   53m   v1.28.7+k3s1
+k3s-london-1645-cd5830-node-pool-9f8b-v5coe   Ready    <none>   53m   v1.28.7+k3s1
+```
+
+```bash
+I have no name!@toolbox:/$ kubectl get po -A
+NAMESPACE       NAME                                               READY   STATUS    RESTARTS   AGE
+kube-system     civo-ccm-5474f5869d-qww6f                          1/1     Running   0          53m
+kube-system     coredns-6799fbcd5-swj59                            1/1     Running   0          53m
+kube-system     civo-csi-node-29xhr                                2/2     Running   0          53m
+kube-system     civo-csi-node-v8bls                                2/2     Running   0          53m
+kube-system     otel-collector-j2zlk                               1/1     Running   0          53m
+kube-system     civo-csi-node-lj2p7                                2/2     Running   0          53m
+kube-system     otel-collector-kct4m                               1/1     Running   0          53m
+kube-system     otel-collector-lsbhs                               1/1     Running   0          53m
+kube-system     civo-csi-controller-0                              4/4     Running   0          53m
+ingress-nginx   ingress-nginx-london-controller-579bd98bf5-vnxml   1/1     Running   0          52m
+```
+
+### 4. Validate access to Management Cluster (`mgmt-cluster`)
+
+- Exit `toolbox`
+
+- Check kubeconfig setup is correct:
+
+```bash
+unset KUBECONFIG
+kubectl config use-context mgmt-cluster
+```
+
+## How ArgoCD registers `london` cluster (fully automated)
 
 Terraform module includes logic that:
 
@@ -73,7 +139,7 @@ data:
 
 - and uses that to `sync` applications to the `remote` cluster.
 
-## 4. Firewall Rules: Dynamic Allowlist for ArgoCD Control Plane
+## Firewall Rules: Dynamic Allowlist for ArgoCD Control Plane
 
 To ensure ArgoCD can reach the `Civo` API server of `london` cluster,
 
@@ -97,7 +163,7 @@ This guarantees connectivity for `ArgoCD` to connect over the Kubernetes API and
 2. **tools provisioning**
 3. **applications deployment**
 
-## 5. Tools and Addons installed into the `london` cluster
+## Tools and Addons installed into the `london` cluster
 
 - The following addons are provisioned declaratively via **ArgoCD ApplicationSets** and **environment-specific** value overrides:
 
@@ -111,7 +177,7 @@ This guarantees connectivity for `ArgoCD` to connect over the Kubernetes API and
 
 - These apps are deployed into the `london` cluster only after it has been registered and marked healthy by `ArgoCD`.
 
-## 6. Sync Wave Behavior: Handling timing for remote clusters (`london`)
+## Sync Wave Behavior: Handling timing for remote clusters (`london`)
 
 Since the entire provisioning process is **fully GitOps-managed**,
 
@@ -140,7 +206,7 @@ spec:
             namespace: ingress-nginx
 ```
 
-## 7. Summary
+## Summary
 
 - Entire cluster provisioning is **declarative and automated**
 
