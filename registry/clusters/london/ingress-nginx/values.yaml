@@ -1,7 +1,15 @@
+nameOverride: ingress-nginx
+fullnameOverride: ingress-nginx
+namespaceOverride: ingress-nginx
+
 controller:
-  service:
-    annotations:
-      service.beta.kubernetes.io/civo-loadbalancer-protocol: http
-    type: LoadBalancer
   ingressClassResource:
     default: true
+
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/civo-loadbalancer-protocol: http
+
+admissionWebhooks:
+  enabled: false

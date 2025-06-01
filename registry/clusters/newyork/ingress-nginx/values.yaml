@@ -5,3 +5,7 @@ controller:
     type: LoadBalancer
   ingressClassResource:
     default: true
+
+nameOverride: ingress-nginx
+fullnameOverride: ingress-nginx
+namespaceOverride: ingress-nginx

@@ -14,6 +14,6 @@ spec:
     - key: cluster_name
       value: london
     - key: node_count
-      value: "3"
+      value: "1"
     - key: node_type
-      value: "g4s.kube.medium"
+      value: "g4s.kube.large"
