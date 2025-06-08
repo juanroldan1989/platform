@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: london
+  name: london-stack
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -11,11 +11,13 @@ spec:
   project: default
   source:
     repoURL: https://github.com/juanroldan1989/platform.git
-    path: registry/clusters/london
+    path: registry/crossplane/stacks/london
     targetRevision: HEAD
+    directory:
+      recurse: true
   destination:
     name: in-cluster
-    namespace: argocd
+    namespace: default
   syncPolicy:
     automated:
       prune: true

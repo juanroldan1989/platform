@@ -1,0 +1,46 @@
+# This tells Crossplane to run your Terraform module from the repo
+# and wire the clusterName/nodeCount/nodeType as dynamic parameters.
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: civo-cluster
+  labels:
+    provider: civo
+    cluster: k3s
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  compositeTypeRef:
+    apiVersion: platform.devops/v1alpha1
+    kind: CompositeCluster
+  resources:
+    - name: civo-cluster-workspace
+      base:
+        apiVersion: tf.upbound.io/v1beta1
+        kind: Workspace
+        metadata:
+          name: london-infrastructure
+        spec:
+          providerConfigRef:
+            name: london
+          forProvider:
+            source: Remote
+            module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/civo_cluster?ref=main
+            vars:
+              - key: cluster_name
+                value: "london"
+              - key: node_count
+                value: "1"
+              - key: node_type
+                value: "g4s.kube.medium"
+      patches:
+        - fromFieldPath: spec.parameters.clusterName
+          toFieldPath: spec.forProvider.vars[0].value
+        - fromFieldPath: spec.parameters.nodeCount
+          toFieldPath: spec.forProvider.vars[1].value
+          transforms:
+            - type: convert
+              convert:
+                toType: string
+        - fromFieldPath: spec.parameters.nodeType
+          toFieldPath: spec.forProvider.vars[2].value
