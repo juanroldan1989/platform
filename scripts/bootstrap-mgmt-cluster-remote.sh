@@ -17,7 +17,6 @@ civo kubernetes create "$CLUSTER_NAME" \
   --region "$REGION" \
   --wait \
   --save \
-  --merge \
   --switch
 
 echo "✅ Cluster created and kubeconfig updated locally"
