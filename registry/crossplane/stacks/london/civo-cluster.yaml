@@ -35,6 +35,8 @@ spec:
                 value: "g4s.kube.medium"
       patches:
         - fromFieldPath: spec.parameters.clusterName
+          toFieldPath: metadata.labels["cluster-name"]
+        - fromFieldPath: spec.parameters.clusterName
           toFieldPath: spec.forProvider.vars[0].value
         - fromFieldPath: spec.parameters.nodeCount
           toFieldPath: spec.forProvider.vars[1].value

@@ -16,6 +16,18 @@ spec:
         - /bin/sh
         - -c
         - |
-          while ! kubectl wait --for=jsonpath='{.status.conditions[0].status}'='True' workspace/london-infrastructure; do echo "waiting for cluster to provision"; sleep 5; done
+          while true; do
+            name=$(kubectl get workspace -l cluster-name=london -o jsonpath='{.items[0].metadata.name}')
+            if [ -n "$name" ]; then
+              echo "Waiting for workspace $name to be ready"
+              if kubectl wait --for=condition=Ready workspace/$name; then
+                echo "Cluster provisioned"
+                break
+              fi
+            else
+              echo "Workspace not yet created"
+            fi
+            sleep 5
+          done
       restartPolicy: Never
   backoffLimit: 1
