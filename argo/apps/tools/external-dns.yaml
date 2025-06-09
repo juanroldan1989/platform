@@ -22,9 +22,6 @@ spec:
         argocd.argoproj.io/description: "Deploys external-dns to {{name}} cluster for managing DNS records"
     spec:
       project: default
-      destination:
-        name: '{{name}}'
-        namespace: 'external-dns'
       sources:
         - repoURL: https://kubernetes-sigs.github.io/external-dns/
           chart: external-dns
@@ -35,6 +32,9 @@ spec:
         - repoURL: https://github.com/juanroldan1989/platform
           targetRevision: main
           ref: values
+      destination:
+        name: '{{name}}'
+        namespace: 'external-dns'
       syncPolicy:
         automated:
           selfHeal: true

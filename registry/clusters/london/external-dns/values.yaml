@@ -2,16 +2,11 @@ provider: cloudflare
 policy: sync
 domainFilters:
   - automatalife.com
-txtOwnerId: newyork
+txtOwnerId: london
 
 env:
   - name: CF_API_TOKEN
     valueFrom:
       secretKeyRef:
         name: cloudflare-api-token
-        key: CLOUDFLARE_API_TOKEN
-
-extraArgs:
-  - --registry=txt
-  - --source=service
-  - --source=ingress
+        key: cloudflare-api-token

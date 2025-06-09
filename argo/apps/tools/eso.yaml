@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: ingress-nginx
+  name: external-secrets-operator
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "50"
@@ -17,28 +17,27 @@ spec:
             in-cluster: "true"
   template:
     metadata:
-      name: ingress-nginx-{{name}}
+      name: external-secrets-operator-{{name}}
       annotations:
-        argocd.argoproj.io/description: "Deploys ingress-nginx to {{name}} cluster for external traffic routing"
+        argocd.argoproj.io/description: "Deploys ESO (External Secrets Operator) into {{name}} cluster for managing Secrets"
     spec:
       project: default
       sources:
-        - repoURL: https://kubernetes.github.io/ingress-nginx
-          chart: ingress-nginx
-          targetRevision: 4.12.3
+        - repoURL: https://charts.external-secrets.io
+          chart: external-secrets
+          targetRevision: 0.15.1
           helm:
             valueFiles:
-              - $values/registry/clusters/{{name}}/ingress-nginx/values.yaml
+              - $values/registry/clusters/{{name}}/eso/values.yaml
         - repoURL: https://github.com/juanroldan1989/platform
           targetRevision: main
           ref: values
       destination:
         name: '{{name}}'
-        namespace: 'ingress-nginx'
+        namespace: external-secrets
       syncPolicy:
         automated:
           selfHeal: true
           prune: true
         syncOptions:
           - CreateNamespace=true
-          - ServerSideApply=true

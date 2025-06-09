@@ -9,9 +9,4 @@ env:
     valueFrom:
       secretKeyRef:
         name: cloudflare-api-token
-        key: CLOUDFLARE_API_TOKEN
-
-extraArgs:
-  - --registry=txt
-  - --source=service
-  - --source=ingress
+        key: cloudflare-api-token
