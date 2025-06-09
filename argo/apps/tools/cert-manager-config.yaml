@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cert-manager-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "60"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            workload: "true"
+  template:
+    metadata:
+      name: cert-manager-config-{{name}}
+      annotations:
+        argocd.argoproj.io/description: "Configuration for Cert Manager into {{name}} cluster"
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/juanroldan1989/platform'
+        targetRevision: main
+        path: registry/clusters/{{name}}/cert-manager/config
+        directory:
+          recurse: true
+      destination:
+        name: '{{name}}'
+        namespace: cert-manager
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true

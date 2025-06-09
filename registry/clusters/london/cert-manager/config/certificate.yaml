@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: london-wildcard-cert
+  namespace: cert-manager
+spec:
+  secretName: london-wildcard-tls
+  duration: 2160h # 90 days
+  renewBefore: 360h # 15 days
+  issuerRef:
+    name: letsencrypt-dns
+    kind: ClusterIssuer
+  dnsNames:
+    - '*.london.automatalife.com'

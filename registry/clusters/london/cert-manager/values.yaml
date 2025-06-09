@@ -1,0 +1,14 @@
+installCRDs: true
+
+extraArgs:
+  - --dns01-recursive-nameservers-only
+  - --dns01-recursive-nameservers=1.1.1.1:53,8.8.8.8:53
+
+# Optionally disable webhook & CA injector if using separate controllers (rare case)
+# webhook:
+#   enabled: true
+# cainjector:
+#   enabled: true
+
+# Pod security context & nodeSelector/tolerations can be added if needed
+# For multi-cloud clusters, leave as default unless constraints apply
