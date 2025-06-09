@@ -2,75 +2,127 @@
 
 This repository is built on top of all achievements made within [gitops-manifests-repo](https://github.com/juanroldan1989/gitops-manifests-repo).
 
-This [platform](https://github.com/juanroldan1989/platform) repository is built to expand those achievements and make them more scalable:
+This [platform](https://github.com/juanroldan1989/platform) repository expands those achievements and makes them more scalable and production-ready:
 
-- This repository is meant to define a **"management" cluster** to be up and running
+* This repository defines and provisions a **"management cluster"**.
+* Within this "management" cluster, `ArgoCD` is provisioned and takes care of **detecting** changes in the `platform/registry` folder, selecting **the right workload cluster**, and provisioning/updating the **correct Kubernetes application**.
 
-- Within this "mangement" cluster, `ArgoCD` (or other tools, please advise) is provisioned and takes care of **detecting** changes to `platform/manifests`, selecting **the right cluster** and provisioning/updating the **correct K8S application.**
+## How is the "management" cluster provisioned?
 
-- Now, this leads to one question: how should I provision this "management" cluster in the first place? under which folder/environment structure? k3ds could be a solution for this.
+The management cluster is provisioned using the script `./scripts/bootstrap-mgmt-cluster-remote.sh`.
+
+It runs against `CIVO` Cloud and installs `ArgoCD`, `Sealed Secrets` and other essential tools.
+
+---
 
 ## Introduction
 
-This [platform](https://github.com/juanroldan1989/platform) repository goal is to manage Kubernetes-based application environments using GitOps principles.
+The [platform](https://github.com/juanroldan1989/platform) repository is built to manage Kubernetes-based application environments using GitOps principles.
 
-This repository provides the foundational tooling and infrastructure automation to support development teams deploying to `DEV`, `TEST` and `PROD` environments.
+It provides foundational infrastructure and automation to support deploying applications in `DEV`, `TEST`, and `PROD` environments.
+
+---
 
 ## Goals
 
 This repository's mission is to **enable a streamlined, scalable and self-service platform** where:
 
-1. Application teams focus solely on developing their apps (within separate github app repositories, e.g.: `applicatioins` repo)
+1. Application teams focus solely on developing their apps in separate repositories (e.g.: `applications` repo).
 
-2. Within this `platform` github repository, Platform engineers follow `GitOps` principles to define:
+2. Platform engineers use this `platform` repository to follow GitOps practices and define:
 
-- MGMT Cluster
-- Workload Clusters
-- Applications running in which clusters
-- Interface to manage all this (it could be argocd running within MGMT Cluster, it could be Rancher, etc)
+   * MGMT Cluster
+   * Workload Clusters
+   * Applications and their target clusters
+   * A GitOps control plane (ArgoCD in the MGMT cluster)
 
-3. GitOps ensures transparency, traceability and automation across all environments (`DEV/TEST/PROD`)
+3. GitOps ensures **transparency**, **traceability** and **automation** across all environments (DEV / TEST / PROD) and clusters (london, barcelona, dublin)
 
-## `platform` repo - Setup to contain (local / cloud)
+---
 
-### 1. Management cluster
+## `platform` Repo – Setup (Local / Cloud)
 
-- Automate `mgmt-cluster` provisioning (local setup / cloud solution: CIVO)
-- Automate `mgmt-cluster` configuration (installing addons: ESO, Cert-Manager, DNS manager, NGINX Ingress, etc)
-- Bottom line goal is to eliminate manual scripts as much as possible.
+### 1. Management Cluster
 
-### 2. Workload clusters
+* Provisions a `mgmt-cluster` automatically using CIVO or a local setup.
+* Configures core tools: ArgoCD, Sealed Secrets, Cert-Manager, External-DNS and NGINX Ingress.
+* Removes the need for manual scripts wherever possible.
 
-- Apply GitOps to the process of provisioning `workload` clusters (`dev`, `test`, `prod`).
-- Automate process of registering `workload` clusters within `ArgoCD` server in `mgmt-cluster`.
-- Automate process of configuring `workload` clusters (installing all addons needed)
-- Bottom line goal is to eliminate manual scripts as much as possible.
+### 2. Workload Clusters
 
-### 3. Deploy applications
+* Applies GitOps to provision `workload clusters` such as `london`, `barcelona` and `dublin`.
+* Registers each workload cluster in ArgoCD via GitOps automation.
+* Configures each cluster with required addons like ESO, Ingress-NGINX, cert-manager, etc.
+* Follows the same GitOps flow to minimize manual interaction.
 
-- Automate `applications` deployment from `platform/manifests` folder witin their respective `workload` clusters (`dev`, `test`, `prod`).
+### 3. Deploy Applications
 
-### 4. Applications that need to provide external access for users
+* Applications are defined declaratively in `registry/clusters/{{cluster-name}}/apps`.
+* A single ArgoCD `Application` resource per app keeps apps in sync across environments.
+* Ingress and TLS settings are managed inside the app definition (e.g., `app.yaml`).
 
-- How could I install, validate and define an ingress resource for each of my applications that needs it, in a GitOps way ?
-- How could I handle cert-managers for each ingress resource in a GitOps way ?
-- How could I handle DNS for each ingress resource in a GitOps way ?
-- I've already got an automatalife.com domain registered within Cloudflare.
-- How could I use this domain for future testing of my applications to provision secure endpoints to try accessing applications ?
+### 4. Applications with External Access
 
-### 5. Storage
+#### ✅ How do we install, validate, and define Ingress resources GitOps-style?
+
+* Ingress resources are declared in each app’s manifest YAML.
+* NGINX Ingress Controller is installed via ArgoCD into each workload cluster.
+* Ingress is automatically routed via `LoadBalancer` and DNS.
+
+#### ✅ How is cert-manager handled for each app?
+
+* A `ClusterIssuer` is defined using Let’s Encrypt with DNS-01 challenge via Cloudflare.
+* cert-manager auto-issues certificates for any ingress using the shared wildcard TLS secret.
+* Secrets are managed with External Secrets Operator and GitOps.
+
+#### ✅ How is DNS handled?
+
+* `external-dns` monitors Ingresses and creates A/TXT records in Cloudflare.
+* It authenticates using a shared Cloudflare API token, managed with ESO and GitOps.
+
+#### ✅ Can I use automatalife.com for secure testing?
+
+* Yes. DNS is managed via Cloudflare.
+* For example, `app.london.automatalife.com` is a real test endpoint exposed securely via HTTPS.
+* Each region (e.g., `london`, `barcelona`, `dublin`) can expose a unique subdomain securely.
+
+#### 🧪 Bonus: Quick Local Testing Without DNS Propagation
+
+To test while waiting for DNS propagation:
+
+```bash
+sudo nano /etc/hosts
+```
+
+Add:
+
+```text
+74.220.20.97   app.london.automatalife.com
+```
+
+Then open in your browser or use:
+
+```bash
+curl -v https://app.london.automatalife.com
+```
+
+Remember to remove it afterward to prevent stale DNS routing.
+
+---
+
+### 5. (WIP) Storage
 
 - How could I provision and manage storage solutions for my multi-cluster platform ?
 - What are the solutions to implement? (local setup / cloud solution: CIVO)
 
-### 6. Failover solutions
+### 6. (WIP) Failover solutions
 
 - I'd like to define 2 clusters running `workload` applications
 - Have traffic being load-balanced between these 2 clusters
 - Then shutdown 1 cluster and see how traffic is re-routed 100% to the other cluster
 - Then provision back again the cluster and see how traffic is re-routed back to 50/50 between `workload` clusters.
 
-### 7. Costs
+### 7. (WIP) Costs
 
 https://github.com/kubecost
 
