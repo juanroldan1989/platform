@@ -133,3 +133,39 @@ output "raw_kubeconfig" {
   value     = civo_kubernetes_cluster.cluster.kubeconfig
   sensitive = true
 }
+
+# Fetches aws-creds secrets content from mgmt-cluster
+data "kubernetes_secret" "aws_creds" {
+  provider = kubernetes.local
+  metadata {
+    name      = "aws-creds"
+    namespace = "external-secrets"
+  }
+}
+
+# Writes AWS Credentials required for ESO (External Secrets Operator) in new cluster
+resource "kubernetes_namespace_v1" "external_secrets" {
+  provider = kubernetes
+  metadata {
+    name = "external-secrets"
+  }
+}
+
+resource "kubernetes_secret_v1" "aws_creds" {
+  provider = kubernetes
+  metadata {
+    name      = "aws-creds"
+    namespace = "external-secrets"
+  }
+
+  data = {
+    access-key        = data.kubernetes_secret.aws_creds.data["access-key"]
+    secret-access-key = data.kubernetes_secret.aws_creds.data["secret-access-key"]
+  }
+
+  type = "Opaque"
+
+  depends_on = [
+    kubernetes_namespace_v1.external_secrets
+  ]
+}

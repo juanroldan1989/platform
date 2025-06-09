@@ -1,23 +1,23 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: crossplane-compositecluster-crd
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
-spec:
-  project: default
-  destination:
-    name: in-cluster
-    namespace: crossplane-system
-  source:
-    repoURL: https://github.com/juanroldan1989/platform.git
-    targetRevision: main
-    path: registry/crossplane/crds
-  syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
-    syncOptions:
-      - CreateNamespace=true
-      - Replace=true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: crossplane-compositecluster-crd
+#   namespace: argocd
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "0"
+# spec:
+#   project: default
+#   destination:
+#     name: in-cluster
+#     namespace: crossplane-system
+#   source:
+#     repoURL: https://github.com/juanroldan1989/platform.git
+#     targetRevision: main
+#     path: registry/crossplane/crds
+#   syncPolicy:
+#     automated:
+#       selfHeal: true
+#       prune: true
+#     syncOptions:
+#       - CreateNamespace=true
+#       - Replace=true

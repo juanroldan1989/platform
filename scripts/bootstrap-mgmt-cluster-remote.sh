@@ -29,6 +29,7 @@ kubectl config use-context mgmt-cluster
 echo "🔐 Injecting Sealed Secrets public key..."
 kubectl apply -f .sealed-secrets/mgmt/sealed-secrets-key.yaml -n kube-system
 
+# TODO: seal AWS credentials (similar as cloud providers) and generate aws-creds decrypting them afterwards
 echo "🔍 Checking AWS profile: ${AWS_PROFILE}"
 ACCESS_KEY=$(aws configure get aws_access_key_id --profile "${AWS_PROFILE}")
 SECRET_KEY=$(aws configure get aws_secret_access_key --profile "${AWS_PROFILE}")
@@ -39,7 +40,7 @@ if [[ -z "$ACCESS_KEY" || -z "$SECRET_KEY" ]]; then
 fi
 echo "✅ AWS credentials loaded from profile '${AWS_PROFILE}'"
 
-echo "🔐 Creating AWS secret for ESO (External Secrets Operator)"
+echo "🔐 Creating AWS secret for ESO (External Secrets Operator) - MGMT Cluster internal use"
 kubectl create ns external-secrets || true
 kubectl create secret generic aws-creds \
   --namespace external-secrets \
