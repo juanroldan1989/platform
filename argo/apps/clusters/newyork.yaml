@@ -12,7 +12,7 @@
 #   source:
 #     repoURL: https://github.com/juanroldan1989/platform.git
 #     path: registry/clusters/newyork
-#     targetRevision: HEAD
+#     targetRevision: main
 #   destination:
 #     name: in-cluster
 #     namespace: argocd

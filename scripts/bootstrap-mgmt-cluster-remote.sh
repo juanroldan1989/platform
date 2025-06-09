@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Customize these variables
 AWS_PROFILE="default"
 CLUSTER_NAME="mgmt-cluster"
@@ -7,14 +9,36 @@ NODE_COUNT=1
 NODE_SIZE="g4s.kube.large"
 REGION="LON1"
 
-echo "🌐 Creating Civo Kubernetes cluster: $CLUSTER_NAME..."
+echo "🌍 Detecting your public IP..."
+MY_PUBLIC_IP=$(curl -s https://api.ipify.org)
+CIDR="$MY_PUBLIC_IP/32"
+echo "📍 Your current IP is: ${CIDR}"
 
+FIREWALL_NAME="${CLUSTER_NAME}-fw"
+
+echo "🛡️ Creating restricted firewall: $FIREWALL_NAME"
+
+civo firewall create "$FIREWALL_NAME" --region "$REGION"
+
+# Allow HTTPS and HTTP from everywhere
+civo firewall rule create "$FIREWALL_NAME" --port 80 --protocol tcp --cidr "0.0.0.0/0" --direction ingress --region "$REGION"
+civo firewall rule create "$FIREWALL_NAME" --port 443 --protocol tcp --cidr "0.0.0.0/0" --direction ingress --region "$REGION"
+
+# Allow Kubernetes API (6443) only from your current IP
+civo firewall rule create "$FIREWALL_NAME" --port 6443 --protocol tcp --cidr "$CIDR" --direction ingress --region "$REGION"
+
+# Optional: Allow SSH from your current IP if needed
+# civo firewall rule create "$FIREWALL_NAME" --port 22 --protocol tcp --cidr "$CIDR" --direction ingress --region "$REGION"
+
+# Allow all egress
+civo firewall rule create "$FIREWALL_NAME" --port 1-65535 --protocol tcp --cidr "0.0.0.0/0" --direction egress --region "$REGION"
+
+echo "🚀 Creating Civo Kubernetes cluster: $CLUSTER_NAME..."
 civo kubernetes create "$CLUSTER_NAME" \
   --nodes "$NODE_COUNT" \
   --size "$NODE_SIZE" \
   --cluster-type k3s \
-  --create-firewall \
-  --firewall-rules "6443" \
+  --firewall "$FIREWALL_NAME" \
   --region "$REGION" \
   --wait \
   --save \
