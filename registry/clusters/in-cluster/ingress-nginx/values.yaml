@@ -11,5 +11,12 @@ controller:
     annotations:
       service.beta.kubernetes.io/civo-loadbalancer-protocol: http
 
+  admissionWebhooks:
+    enabled: false
+    patch:
+      enabled: false
+
 admissionWebhooks:
   enabled: false
+  patch:
+    enabled: false
