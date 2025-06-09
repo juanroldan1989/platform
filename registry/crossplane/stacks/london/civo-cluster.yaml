@@ -8,7 +8,7 @@ metadata:
     provider: civo
     cluster: k3s
   annotations:
-    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-wave: "15"
 spec:
   compositeTypeRef:
     apiVersion: platform.devops/v1alpha1

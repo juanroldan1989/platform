@@ -4,7 +4,7 @@ kind: CompositeResourceDefinition
 metadata:
   name: compositeclusters.platform.devops
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   group: platform.devops
   names:
