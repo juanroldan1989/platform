@@ -21,24 +21,24 @@ echo "🛡️ Creating restricted firewall: $FIREWALL_NAME"
 civo firewall create "$FIREWALL_NAME" --region "$REGION"
 
 # Allow HTTPS and HTTP from everywhere
-civo firewall rule create "$FIREWALL_NAME" --port 80 --protocol tcp --cidr "0.0.0.0/0" --direction ingress --region "$REGION"
-civo firewall rule create "$FIREWALL_NAME" --port 443 --protocol tcp --cidr "0.0.0.0/0" --direction ingress --region "$REGION"
+civo firewall rule create "$FIREWALL_NAME" --startport 80 --endport 80 --protocol tcp --cidr "0.0.0.0/0" --direction ingress --region "$REGION"
+civo firewall rule create "$FIREWALL_NAME" --startport 443 --endport 443 --protocol tcp --cidr "0.0.0.0/0" --direction ingress --region "$REGION"
 
 # Allow Kubernetes API (6443) only from your current IP
-civo firewall rule create "$FIREWALL_NAME" --port 6443 --protocol tcp --cidr "$CIDR" --direction ingress --region "$REGION"
+civo firewall rule create "$FIREWALL_NAME" --startport 6443 --endport 6443 --protocol tcp --cidr "$CIDR" --direction ingress --region "$REGION"
 
 # Optional: Allow SSH from your current IP if needed
-# civo firewall rule create "$FIREWALL_NAME" --port 22 --protocol tcp --cidr "$CIDR" --direction ingress --region "$REGION"
+# civo firewall rule create "$FIREWALL_NAME" --startport 22 --endport 22 --protocol tcp --cidr "$CIDR" --direction ingress --region "$REGION"
 
 # Allow all egress
-civo firewall rule create "$FIREWALL_NAME" --port 1-65535 --protocol tcp --cidr "0.0.0.0/0" --direction egress --region "$REGION"
+civo firewall rule create "$FIREWALL_NAME" --startport 1 --endport 65535 --protocol tcp --cidr "0.0.0.0/0" --direction egress --region "$REGION"
 
 echo "🚀 Creating Civo Kubernetes cluster: $CLUSTER_NAME..."
 civo kubernetes create "$CLUSTER_NAME" \
   --nodes "$NODE_COUNT" \
   --size "$NODE_SIZE" \
   --cluster-type k3s \
-  --firewall "$FIREWALL_NAME" \
+  --existing-firewall "$FIREWALL_NAME" \
   --region "$REGION" \
   --wait \
   --save \

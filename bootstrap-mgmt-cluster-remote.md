@@ -1,6 +1,6 @@
 # Bootstrap `mgmt-cluster` in remove CIVO cloud
 
-- 1 script:
+## 1 script
 
 ```ruby
 ➜  platform git:(main) ✗ ./scripts/bootstrap-mgmt-cluster-remote.sh
@@ -30,7 +30,9 @@ job.batch/argocd-app-bootstrap created
 ✅ Bootstrap completed. ArgoCD should self-manage itself shortly.
 ```
 
-- After `3 min 1 sec` we can access ArgoCD Server with:
+## After `3 min 1 sec` approx
+
+We can access ArgoCD Server with:
 
 ```bash
 kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d
@@ -40,8 +42,29 @@ kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.pas
 kubectl -n argocd port-forward svc/argocd-server 8888:80
 ```
 
-- `App of Apps` takes care of:
+## `App of Apps` ArgoCD Pattern takes care of
 
-1. Provisioning tools within `mgmt` cluster: NGINX Ingress, ESO (External Secrets Operator), Cert Manager, External DNS Operator
-2. Provisioning new `london` cluster in `CIVO` Cloud.
-3. Provisioning tools within `london` cluster: NGINX Ingress, ESO (External Secrets Operator), Cert Manager, External DNS Operator
+1. Provisioning tools within `mgmt` cluster:
+
+- Crossplane
+- Crossplane Terraform Provider
+- NGINX Ingress
+- ESO (External Secrets Operator)
+- Cert Manager
+- External DNS Operator
+
+2. Provisioning `workload` clusters:
+
+- `london` cluster in `CIVO` Cloud.
+- `newyork` cluster in `Vultr` Cloud.
+
+3. Provisioning tools in `workload` clusters:
+
+- NGINX Ingress
+- ESO (External Secrets Operator)
+- Cert Manager
+- External DNS Operator
+
+4. Deploy applications into `workload` clusters:
+
+- `hello-world` application with: NGINX Ingress, DNS records (Cloudflare) and TLS certificates (secure SSL access).
