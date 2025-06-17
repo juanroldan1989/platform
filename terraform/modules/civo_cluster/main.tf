@@ -59,6 +59,7 @@ resource "civo_firewall" "cluster" {
 }
 
 resource "civo_kubernetes_cluster" "cluster" {
+  # TODO: add version for Civo cluster. set to latest
   name             = var.cluster_name
   write_kubeconfig = true
   network_id       = civo_network.cluster.id
