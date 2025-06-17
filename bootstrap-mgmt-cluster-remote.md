@@ -68,3 +68,7 @@ kubectl -n argocd port-forward svc/argocd-server 8888:80
 4. Deploy applications into `workload` clusters:
 
 - `hello-world` application with: NGINX Ingress, DNS records (Cloudflare) and TLS certificates (secure SSL access).
+
+5. Defines NGINX Ingress secure access to ArgoCD Server through `argocd.automatalife.com`.
+
+- No need to port-forward into argocd-server afterwards.
