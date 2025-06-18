@@ -33,6 +33,34 @@ civo firewall rule create "$FIREWALL_NAME" --startport 6443 --endport 6443 --pro
 # Allow all egress
 civo firewall rule create "$FIREWALL_NAME" --startport 1 --endport 65535 --protocol tcp --cidr "0.0.0.0/0" --direction egress --region "$REGION"
 
+echo "🧹 Cleaning up insecure default ingress rules added by Civo..."
+FIREWALL_ID=$(civo firewall ls --region "$REGION" -o json | jq -r ".[] | select(.name == \"$FIREWALL_NAME\") | .id")
+
+if [[ -z "$FIREWALL_ID" ]]; then
+  echo "❌ Could not find firewall ID for $FIREWALL_NAME"
+  exit 1
+fi
+
+civo firewall rule ls "$FIREWALL_ID" --region "$REGION" -o json > tmp_rules.json
+
+UNWANTED_RULE_IDS=$(jq -r '.[] | select(
+  .direction == "ingress" and (
+    (.protocol == "tcp" and (.start_port | tonumber) == 1 and (.end_port | tonumber) == 65535) or
+    (.protocol == "udp" and (.start_port | tonumber) == 1 and (.end_port | tonumber) == 65535) or
+    (.protocol == "icmp")
+  )
+) | .id' tmp_rules.json)
+
+for rule_id in $UNWANTED_RULE_IDS; do
+  echo "🚫 Deleting insecure rule ID: $rule_id"
+  civo firewall rule remove $FIREWALL_ID $rule_id --region "$REGION" --yes
+done
+
+rm tmp_rules.json
+echo "✅ Finished removing default insecure firewall rules."
+
+echo "✅ Firewall rules cleaned up. Cluster access is now restricted to intended sources."
+
 echo "🚀 Creating Civo Kubernetes cluster: $CLUSTER_NAME..."
 civo kubernetes create "$CLUSTER_NAME" \
   --nodes "$NODE_COUNT" \
