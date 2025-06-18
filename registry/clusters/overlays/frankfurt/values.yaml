@@ -1,0 +1,8 @@
+name: frankfurt
+region: fra1
+k8s_version: 1.29.8-k3s1
+node_count: "1"
+node_type: g4s.kube.large
+txtOwnerId: frankfurt
+domainFilters:
+  - automatalife.com

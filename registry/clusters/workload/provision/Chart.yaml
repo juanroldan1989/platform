@@ -1,0 +1,5 @@
+apiVersion: v2
+name: provision
+version: 0.1.0
+description: Helm chart to provision workload clusters
+type: application

@@ -1,21 +1,21 @@
 apiVersion: tf.upbound.io/v1beta1
 kind: Workspace
 metadata:
-  name: london-infrastructure
+  name: {{ .Values.name }}-infrastructure
   annotations:
     argocd.argoproj.io/sync-wave: "20"
 spec:
   providerConfigRef:
-    name: london
+    name: {{ .Values.name }}
   forProvider:
     source: Remote
     module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/civo_cluster?ref=main
     vars:
     - key: cluster_name
-      value: london
+      value: {{ .Values.name }}
     - key: k8s_version
-      value: 1.29.8-k3s1
+      value: {{ .Values.k8s_version }}
     - key: node_count
-      value: "1"
+      value: {{ .Values.node_count | quote }}
     - key: node_type
-      value: "g4s.kube.large"
+      value: {{ .Values.node_type }}

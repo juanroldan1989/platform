@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: cert-manager-config
+  name: external-secrets-operator-support
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "60"
@@ -11,22 +11,26 @@ spec:
         selector:
           matchLabels:
             workload: "true"
+    - clusters:
+        selector:
+          matchLabels:
+            in-cluster: "true"
   template:
     metadata:
-      name: cert-manager-config-{{name}}
+      name: external-secrets-operator-support-{{name}}
       annotations:
-        argocd.argoproj.io/description: "Configuration for Cert Manager into {{name}} cluster"
+        argocd.argoproj.io/description: "Additional resources for ESO in {{name}} cluster"
     spec:
       project: default
       source:
         repoURL: 'https://github.com/juanroldan1989/platform'
         targetRevision: main
-        path: registry/clusters/{{name}}/cert-manager/config
+        path: registry/clusters/workload/support/eso
         directory:
           recurse: true
       destination:
         name: '{{name}}'
-        namespace: cert-manager
+        namespace: external-secrets
       syncPolicy:
         automated:
           selfHeal: true

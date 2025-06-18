@@ -19,7 +19,7 @@ spec:
     metadata:
       name: ingress-nginx-{{name}}
       annotations:
-        argocd.argoproj.io/description: "Deploys ingress-nginx to {{name}} cluster for external traffic routing"
+        argocd.argoproj.io/description: "Deploy & Configuration of INGRESS NGINX in {{name}} cluster for external traffic routing"
     spec:
       project: default
       sources:
@@ -28,7 +28,7 @@ spec:
           targetRevision: 4.12.3
           helm:
             valueFiles:
-              - $values/registry/clusters/{{name}}/ingress-nginx/values.yaml
+              - $values/registry/clusters/workload/config/ingress-nginx/values.yaml
         - repoURL: https://github.com/juanroldan1989/platform
           targetRevision: main
           ref: values

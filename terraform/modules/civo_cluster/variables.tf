@@ -8,7 +8,7 @@ variable "cluster_name" {
   description = "Name of the Civo Kubernetes cluster"
 }
 
-variable "k3s_version" {
+variable "k8s_version" {
   type = string
   description = "Kubernetes Cluster version"
 }

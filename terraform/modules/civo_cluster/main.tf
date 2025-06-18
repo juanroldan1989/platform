@@ -59,11 +59,11 @@ resource "civo_firewall" "cluster" {
 }
 
 resource "civo_kubernetes_cluster" "cluster" {
-  name             = var.cluster_name
-  write_kubeconfig = true
-  network_id       = civo_network.cluster.id
-  firewall_id      = civo_firewall.cluster.id
-  k3s_version      = var.k3s_version
+  name               = var.cluster_name
+  write_kubeconfig   = true
+  network_id         = civo_network.cluster.id
+  firewall_id        = civo_firewall.cluster.id
+  kubernetes_version = var.k8s_version
 
   pools {
     label      = "${var.cluster_name}-pool"
@@ -90,6 +90,8 @@ provider "kubernetes" {
   alias = "local"
 }
 
+# This secret registers the `CIVO` cluster with ArgoCD.
+# It uses the `kubeconfig` data from the `CIVO` Kubernetes resource.
 resource "kubernetes_secret_v1" "argocd_cluster_secret" {
   provider = kubernetes.local
   metadata {

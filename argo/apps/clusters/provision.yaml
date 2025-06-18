@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: provision-clusters
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/juanroldan1989/platform.git
+        revision: main
+        directories:
+          - path: registry/clusters/overlays/*
+  template:
+    metadata:
+      name: provision-cluster-{{path.basename}}
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/juanroldan1989/platform.git
+          targetRevision: main
+          path: registry/clusters/workload/provision
+          helm:
+            valueFiles:
+              - $values/registry/clusters/overlays/{{path.basename}}/values.yaml
+        - repoURL: https://github.com/juanroldan1989/platform
+          targetRevision: main
+          ref: values
+      destination:
+        name: in-cluster
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

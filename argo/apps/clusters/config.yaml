@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: secrets
+  name: config-clusters
   namespace: argocd
 spec:
   generators:
@@ -9,22 +9,18 @@ spec:
         selector:
           matchLabels:
             workload: "true"
-    - clusters:
-        selector:
-          matchLabels:
-            in-cluster: "true"
   template:
     metadata:
-      name: 'secrets-{{name}}'
+      name: 'config-{{name}}'
     spec:
       project: default
       destination:
-        name: '{{name}}'
-        namespace: external-dns
+        name: in-cluster
+        namespace: argocd
       source:
         repoURL: https://github.com/juanroldan1989/platform
         targetRevision: main
-        path: registry/clusters/{{name}}/secrets
+        path: registry/clusters/workload/config
       syncPolicy:
         automated:
           selfHeal: true

@@ -59,12 +59,14 @@ To retrieve and use it within `toolbox` pod:
 
 ```bash
 I have no name!@toolbox:/$ kubectl get secret london-kubeconfig -n argocd -o jsonpath='{.data.kubeconfig}' | base64 -d > /tmp/london.kubeconfig
+I have no name!@toolbox:/$ kubectl get secret frankfurt-kubeconfig -n argocd -o jsonpath='{.data.kubeconfig}' | base64 -d > /tmp/frankfurt.kubeconfig
 ```
 
 - Point kubeconfig environment variable to it:
 
 ```bash
 I have no name!@toolbox:/$ export KUBECONFIG=/tmp/london.kubeconfig
+I have no name!@toolbox:/$ export KUBECONFIG=/tmp/frankfurt.kubeconfig
 ```
 
 - Confirm access:

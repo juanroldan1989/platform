@@ -19,7 +19,7 @@ spec:
     metadata:
       name: external-dns-{{name}}
       annotations:
-        argocd.argoproj.io/description: "Deploys external-dns to {{name}} cluster for managing DNS records"
+        argocd.argoproj.io/description: "Deploy & Configuration of External DNS in {{name}} cluster for managing DNS records"
     spec:
       project: default
       sources:
@@ -28,7 +28,8 @@ spec:
           targetRevision: 1.14.3
           helm:
             valueFiles:
-              - $values/registry/clusters/{{name}}/external-dns/values.yaml
+              - $values/registry/clusters/overlays/{{name}}/values.yaml
+              - $values/registry/clusters/workload/config/external-dns/values.yaml
         - repoURL: https://github.com/juanroldan1989/platform
           targetRevision: main
           ref: values

@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: hello-world
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "70"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            workload: "true"
+  template:
+    metadata:
+      name: hello-world-in-cluster-{{name}}
+      annotations:
+        argocd.argoproj.io/description: "Deploy Hello World App into {{name}} cluster"
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/juanroldan1989/platform.git
+          targetRevision: main
+          path: registry/clusters/workload/apps
+          helm:
+            valueFiles:
+              - $values/registry/clusters/overlays/{{name}}/values.yaml
+        - repoURL: https://github.com/juanroldan1989/platform
+          targetRevision: main
+          ref: values
+      destination:
+        name: '{{name}}'
+        namespace: hello-{{name}}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
