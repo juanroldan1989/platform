@@ -8,6 +8,11 @@ variable "cluster_name" {
   description = "Name of the Civo Kubernetes cluster"
 }
 
+variable "k3s_version" {
+  type = string
+  description = "Kubernetes Cluster version"
+}
+
 variable "node_count" {
   type = string
   description = "Number of nodes in the Civo Kubernetes cluster"
