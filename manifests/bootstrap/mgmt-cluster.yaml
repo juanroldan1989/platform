@@ -79,6 +79,8 @@ spec:
               while ! kubectl get svc argocd-server -n argocd >/dev/null 2>&1; do
                 echo "[INFO] Waiting for argocd-server..."; sleep 5;
               done && \
+              echo "[INFO] Waiting for repo-server readiness..." && \
+              kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-repo-server -n argocd --timeout=120s && \
               echo "[INFO] ArgoCD is ready. Applying app-of-apps..." && \
               kubectl apply -f https://raw.githubusercontent.com/juanroldan1989/platform/main/argo/app-of-apps.yaml
           resources:

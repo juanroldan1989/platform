@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd-server-ingress
+  name: default-project
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "70"
+    argocd.argoproj.io/sync-wave: "-1"  # Ensures `default` project is applied before any app
 spec:
   project: default
   destination:
@@ -15,7 +15,7 @@ spec:
     targetRevision: main
     path: registry/clusters/in-cluster/apps
     directory:
-      include: argocd-ingress.yaml
+      include: default-project.yaml
   syncPolicy:
     automated:
       selfHeal: true
