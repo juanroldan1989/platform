@@ -44,6 +44,10 @@ Platform engineers can use this repository to:
 * A single **ArgoCD ApplicationSet** resource per application keeps apps in sync across clusters and cloud providers.
 * Ingress and `TLS` settings are managed inside each cluster's registry folder: `registry/clusters/{{cluster}}/external-dns`
 
+### 4. Diagram
+
+TODO: Add diagram showcasing all 3 points above.
+
 ## Applications with External Access
 
 #### How do we install, validate and define Ingress resources GitOps-style?
@@ -91,13 +95,13 @@ curl -v https://app.london.automatalife.com
 
 Remember to remove it afterward to prevent stale DNS routing.
 
-### 5. (WIP) Storage
+### 5. (TODO) Storage
 
 - How could I provision and manage storage solutions for my multi-cluster platform ?
 - What are the solutions to implement? (local setup / cloud solution: CIVO, Vultr)
 - Define a sample application that relies on database (e.g.: `Ghost` blog).
 
-### 6. (WIP) Failover solutions
+### 6. (TODO) Failover solutions
 
 - I'd like to define 2 clusters in different cloud providers running `workload` applications.
 - Have traffic being load-balanced between these 2 clusters.
@@ -105,7 +109,17 @@ Remember to remove it afterward to prevent stale DNS routing.
 - Then provision back again the cluster and see how traffic is re-routed back to 50/50 between `workload` clusters.
 - Include scenarios to handle applications that rely on databases (e.g.: `Ghost` blog) and provide solution around DB backups and restore.
 
-### 7. (WIP) Costs
+### 7. (TODO) Clusters hardening
+
+Harden via Kubernetes Benchmarks
+
+Use kube-bench to evaluate your cluster against the CIS Kubernetes Benchmark:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml
+```
+
+### 7. (TODO) Costs
 
 https://github.com/kubecost
 
