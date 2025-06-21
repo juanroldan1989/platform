@@ -1,0 +1,6 @@
+# This file is used to define the configuration for the MGMT cluster.
+
+# DNS Configuration for External DNS
+txtOwnerId: in-cluster
+domainFilters:
+  - automatalife.com
