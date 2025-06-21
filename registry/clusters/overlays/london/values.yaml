@@ -11,3 +11,14 @@ node_type: g4s.kube.large
 txtOwnerId: london
 domainFilters:
   - automatalife.com
+
+# Cert Manager Configuration
+# This section defines the wildcard certificate for the London cluster.
+# A wildcard certificate will be created for all namespaces listed under `namespaces`.
+cert_manager:
+  wildcard:
+    enabled: true
+    namespaces:
+      - cert-manager
+      - hello-london
+      # - goodbye-london

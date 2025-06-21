@@ -1,0 +1,7 @@
+# Load Balancer Configuration for Hello World App
+
+name: hello-world
+cloudflare:
+  account_id: 7b2ce612d838f3c395562afdb1d90084
+  zone_id: 027d094f98fd44b8fe6e7d12cbae83de
+  notification_email: automatalife@gmail.com

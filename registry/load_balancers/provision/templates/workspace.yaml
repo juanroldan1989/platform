@@ -1,0 +1,19 @@
+apiVersion: tf.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: {{ .Values.name }}-infrastructure
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  providerConfigRef:
+    name: {{ .Values.name }}
+  forProvider:
+    source: Remote
+    module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/cloudflare_lb?ref=main
+    vars:
+    - key: account_id
+      value: "{{ .Values.cloudflare.account_id }}"
+    - key: zone_id
+      value: "{{ .Values.cloudflare.zone_id }}"
+    - key: notification_email
+      value: "{{ .Values.cloudflare.notification_email }}"

@@ -7,6 +7,7 @@ AWS_PROFILE="default"
 CLUSTER_NAME="mgmt-cluster"
 NODE_COUNT=1
 NODE_SIZE="g4s.kube.large"
+K8S_VERSION="1.29.8-k3s1"
 REGION="LON1"
 
 echo "🌍 Detecting your public IP..."
@@ -65,6 +66,7 @@ echo "🚀 Creating Civo Kubernetes cluster: $CLUSTER_NAME..."
 civo kubernetes create "$CLUSTER_NAME" \
   --nodes "$NODE_COUNT" \
   --size "$NODE_SIZE" \
+  --version "$K8S_VERSION" \
   --cluster-type k3s \
   --existing-firewall "$FIREWALL_NAME" \
   --region "$REGION" \

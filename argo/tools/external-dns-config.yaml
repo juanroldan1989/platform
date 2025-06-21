@@ -43,3 +43,7 @@ spec:
         syncOptions:
           - CreateNamespace=true
           - ServerSideApply=true
+
+# TODO: it works OK, I've added an overlay for 'in-cluster' clusters,
+# but makes provision.yaml to try to create another 'in-cluster' cluster,
+# try to setup a specific external-dns-config.yaml for 'in-cluster' and remove the overlay

@@ -1,25 +1,25 @@
 variable "civo_token" {
-  type = string
   description = "Civo API token for authentication"
+  type = string
 }
 
 variable "cluster_name" {
-  type = string
   description = "Name of the Civo Kubernetes cluster"
+  type = string
 }
 
 variable "k8s_version" {
-  type = string
   description = "Kubernetes Cluster version"
+  type = string
 }
 
 variable "node_count" {
-  type = string
   description = "Number of nodes in the Civo Kubernetes cluster"
+  type = string
 }
 
 variable "node_type" {
-  type    = string
   description = "Type of nodes in the Civo Kubernetes cluster"
+  type    = string
   default = "g4s.kube.medium"
 }
