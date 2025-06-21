@@ -3,14 +3,14 @@
 ### Prerequisites
 
 - k3d: local kubernetes
-    - install: `brew install k3d`
+  - install: `brew install k3d`
 - watch: repeat a command to watch resources
-    - install: `brew install watch`
+  - install: `brew install watch`
 - kubectl: interact with kubernetes
-    - install: `brew install kubectl`
+  - install: `brew install kubectl`
 - civo account
-    - set nameserver records at your domain registrar to `ns0.civo.com` and `ns1.civo.com`
-    - add your domain in your [civo dns](https://dashboard.civo.com/dns)
+  - set nameserver records at your domain registrar to `ns0.civo.com` and `ns1.civo.com`
+  - add your domain in your [civo dns](https://dashboard.civo.com/dns)
 
 ### Clone `platform` repository
 
@@ -54,7 +54,7 @@ k3d cluster create mgmt-cluster \
   --volume $PWD/.sealed-secrets:/platform/.sealed-secrets
 ```
 
-------
+---
 
 The result will be a **local bootstrap k3d cluster** with the necessary components **for app and infrastructure management**.
 
@@ -124,7 +124,7 @@ kubectl -n argocd get secret/argocd-initial-admin-secret -ojsonpath='{.data.pass
 
 ### To add or remove a cluster:
 
-- Add/remove an `ArgoCD` Application YAML under `argo/apps/clusters/`
+- Add/remove an `ArgoCD` Application YAML under `argo/clusters/`
 
 - ArgoCD will:
 

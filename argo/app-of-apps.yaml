@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/juanroldan1989/platform.git
     targetRevision: main
-    path: argo/apps
+    path: argo
     directory:
       recurse: true
   destination:
