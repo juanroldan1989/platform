@@ -1,0 +1,15 @@
+apiVersion: tf.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: cloudflare-lb-{{ .Values.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "80"
+spec:
+  providerConfigRef:
+    name: cloudflare-provider
+  forProvider:
+    source: Remote
+    module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/cloudflare_lb?ref=main
+    vars:
+      - key: zone_id
+        value: "{{ .Values.cloudflare.zone_id }}"

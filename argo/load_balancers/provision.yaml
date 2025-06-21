@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: provision-load-balancers
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/juanroldan1989/platform.git
+        revision: main
+        directories:
+          - path: registry/load_balancers/overlays/*
+  template:
+    metadata:
+      name: provision-load-balancer-{{path.basename}}
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/juanroldan1989/platform.git
+          targetRevision: main
+          path: registry/load_balancers/provision
+          helm:
+            valueFiles:
+              - $values/registry/load_balancers/overlays/{{path.basename}}/values.yaml
+        - repoURL: https://github.com/juanroldan1989/platform
+          targetRevision: main
+          ref: values
+      destination:
+        name: in-cluster
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

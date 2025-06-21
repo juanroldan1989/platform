@@ -1,0 +1,5 @@
+apiVersion: v2
+name: provision-load-balancer
+version: 0.1.0
+description: Helm chart to provision load balancers
+type: application
