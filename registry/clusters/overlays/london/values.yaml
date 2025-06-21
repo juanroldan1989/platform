@@ -1,8 +1,13 @@
+# This file is used to define the configuration for the London cluster.
+
+# Kubernetes cluster configuration for London region.
 name: london
 region: lon1
 k8s_version: 1.29.8-k3s1
 node_count: "1"
 node_type: g4s.kube.large
+
+# DNS Configuration for External DNS
 txtOwnerId: london
 domainFilters:
   - automatalife.com

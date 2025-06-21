@@ -1,8 +1,13 @@
+# This file is used to define the configuration for the Frankfurt cluster.
+
+# Kubernetes cluster configuration for Frankfurt region.
 name: frankfurt
 region: fra1
 k8s_version: 1.29.8-k3s1
 node_count: "1"
 node_type: g4s.kube.large
+
+# DNS Configuration for External DNS
 txtOwnerId: frankfurt
 domainFilters:
   - automatalife.com
