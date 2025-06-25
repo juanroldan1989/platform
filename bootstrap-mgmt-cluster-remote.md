@@ -3,6 +3,8 @@
 ## 1 script
 
 ```ruby
+# TODO: update with most recent results
+
 ➜  platform git:(main) ✗ ./scripts/bootstrap-mgmt-cluster-remote.sh
 
 🌐 Creating Civo Kubernetes cluster: mgmt-cluster...

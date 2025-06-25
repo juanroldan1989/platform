@@ -10,7 +10,7 @@ spec:
     - clusters:
         selector:
           matchLabels:
-            workload: "true"
+            workload: "true" # TODO: improvement: add custom labels to clusters so apps can be deployed only in specific clusters too
   template:
     metadata:
       name: hello-world-in-cluster-{{name}}
