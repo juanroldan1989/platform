@@ -2,6 +2,8 @@
 
 This repository is structured to support
 
+TODO: update this structure with recent updates
+
 **full GitOps-based cluster and platform management** using `ArgoCD` and `Crossplane`.
 
 ## `argo/`

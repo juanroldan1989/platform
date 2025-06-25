@@ -1,4 +1,42 @@
-# Cloudflare Global Load Balancer for `hello.automatalife.com`
+# Global Server Load Balancing (GSLB)
+
+Global Server Load Balancing (GSLB) is a traffic distribution technique that:
+
+- Intelligently routes user requests across multiple geographically dispersed servers or data centers.
+
+The goal is to improve performance, resilience and availability by directing traffic to **the most optimal location.**
+
+- Cloudflare’s Load Balancing solution implements `GSLB` by leveraging its global network of edge data centers.
+
+It evaluates multiple real-time factors such as:
+
+✅ Server health – Ensures traffic is only sent to healthy and responsive servers.
+
+📍 Geographic proximity – Routes users to the nearest available region to minimize latency.
+
+⚡ Performance metrics – Takes into account response time and throughput to select the best target.
+
+## Cloudflare as a Global Load Balancer
+
+Cloudflare’s load balancers are inherently global. They:
+
+- Operate across a worldwide Anycast network, enabling ultra-low latency routing decisions.
+
+- Continuously monitor origin pools and automatically fail over if a server or region becomes unavailable.
+
+- Support geo-routing, latency-based routing, and failover strategies to keep applications fast and reliable.
+
+## Benefits of Cloudflare GSLB:
+
+- Improved performance by reducing round-trip time.
+
+- Increased availability through intelligent failover.
+
+- Scalability by spreading load across multiple origins.
+
+- Reduced downtime and enhanced user experience globally.
+
+# Cloudflare `GLB` for `hello.automatalife.com`
 
 This document explains the setup of a **Cloudflare Global Load Balancer** that routes external traffic to:
 
@@ -8,8 +46,8 @@ https://hello.automatalife.com
 
 This load balancer distributes requests across regionally deployed instances of a `Hello World` application, hosted in separate Kubernetes clusters:
 
-* [`https://app.london.automatalife.com`](https://app.london.automatalife.com)
-* [`https://app.frankfurt.automatalife.com`](https://app.frankfurt.automatalife.com)
+* [`https://app.london.automatalife.com`](https://app.london.automatalife.com) -> CIVO cloud provider (`london` region)
+* [`https://app.frankfurt.automatalife.com`](https://app.frankfurt.automatalife.com) -> CIVO cloud provider (`frankfurt` region)
 
 ## Goals
 
@@ -18,7 +56,6 @@ This load balancer distributes requests across regionally deployed instances of 
 * Route external requests to `hello.automatalife.com` across multiple Kubernetes clusters (`london`, `frankfurt`, etc.) and cloud providers (`CIVO`, `Vultr`, `Heztner`)
 * Ensure **TLS validation and HTTPS health checks** via Cloudflare’s Load Balancing monitor
 * Make the setup fully **GitOps-compliant** using **Terraform** and **ArgoCD**
-
 
 ## Infrastructure Components
 
@@ -29,6 +66,48 @@ This load balancer distributes requests across regionally deployed instances of 
 | `cloudflare_load_balancer`         | Exposes the main entrypoint at `hello.automatalife.com` and performs steering                      |
 | Kubernetes `Ingress` resources     | Serve traffic in each cluster, with support for both local and global hostnames                    |
 | TLS Certificates (`cert-manager`)  | Wildcard certificates valid for both `app.<cluster>.automatalife.com` and `hello.automatalife.com` |
+
+## Cloudflare API Token Configuration
+
+To enable Terraform-based provisioning of monitors, pools, and load balancers via the Cloudflare API,
+
+a properly scoped **User API Token** is required.
+
+This token must have permissions that span both the account and the specific DNS zone (`automatalife.com`).
+
+Below is a working configuration:
+
+### User API Token Permissions
+
+#### Account-wide Permissions:
+
+- `Load Balancing: Account Load Balancers` – **Read & Edit**
+- `Load Balancing: Monitors and Pools` – **Read & Edit**
+
+#### Zone-specific Permissions (for `automatalife.com`):
+
+- `Zone` – **Read & Edit**
+- `DNS` – **Read & Edit**
+- `Load Balancers` – **Read & Edit**
+
+### Token Scope
+
+- **Account access**: Set to `All accounts`
+- **Zone access**: Scoped to `automatalife.com`
+
+- **Note**: These permissions are required because:
+
+> - Terraform needs to manage Load Balancer resources across the account (monitors & pools).
+
+> - Load Balancers are linked to a specific DNS zone and require zone-level edit permissions to create the `hello.automatalife.com` record.
+
+> - `External-DNS` and `cert-manager` (using the same token or a separate one) also require `DNS:Edit` for automated DNS management and TLS provisioning.
+
+### Additional Tips
+
+- **Token Location in Terraform**: Store the token in a Kubernetes `Secret` and reference it via `TF_VAR_cloudflare_api_token` (`registry/load_balancers/provision/templates/provider-config.yaml`).
+
+- **Avoid IP Restrictions** during early development unless you're using static IP GitOps runners.
 
 ## Key Fixes and Required Setup
 

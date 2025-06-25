@@ -44,36 +44,38 @@ Platform engineers can use this repository to:
 * A single **ArgoCD ApplicationSet** resource per application keeps apps in sync across clusters and cloud providers.
 * Ingress and `TLS` settings are managed inside each cluster's registry folder: `registry/clusters/{{cluster}}/external-dns`
 
-### 4. Diagram
+## Diagram
 
 TODO: Add diagram showcasing all 3 points above.
 
 ## Applications with External Access
 
-#### How do we install, validate and define Ingress resources GitOps-style?
+### How do we install, validate and define Ingress resources GitOps-style?
 
 * Ingress resources are declared within each cluster's registry folder: `registry/clusters/{{cluster}}/ingress-nginx`
 * NGINX Ingress Controller is installed via ArgoCD into each workload cluster.
 * Ingress is automatically routed via `LoadBalancer` and DNS Manager.
 
-#### How is cert-manager handled for each app?
+### How is cert-manager handled for each app?
 
 * A `ClusterIssuer` is defined using `Let’s Encrypt` with `DNS-01` challenge via `Cloudflare`.
 * `cert-manager` auto-issues certificates for any ingress using the shared wildcard TLS secret.
 * Secrets are managed with **External Secrets Operator** and `GitOps`.
 
-#### How is DNS handled?
+### How DNS records are managed?
 
-* `external-dns` monitors Ingresses and creates `A/TXT` records in `Cloudflare`.
+* DNS records are stored within `Cloudflare`.
+
+* `external-dns` allows us to:
+
+- synchronize **exposed Kubernetes Services and Ingresses** with **DNS providers.**
+- monitor Ingresses and creates `A/TXT` records in `Cloudflare`.
+
 * It authenticates using a shared `Cloudflare API token`, managed with `ESO` and `GitOps`.
+* Each cluster (e.g., `london`, `frankfurt`, `newyork`) can expose a unique subdomain securely.
+* For example, `app.london.automatalife.com` is a real endpoint exposed securely via HTTPS.
 
-#### Can I use `automatalife.com` for secure testing?
-
-* Yes. DNS is managed via Cloudflare.
-* For example, `app.london.automatalife.com` is a real test endpoint exposed securely via HTTPS.
-* Each cluster (e.g., `london`, `barcelona`, `dublin`) can expose a unique subdomain securely.
-
-#### Quick Local Testing Without DNS Propagation
+### Quick Local Testing Without DNS Propagation
 
 To test while waiting for DNS propagation:
 
@@ -95,7 +97,7 @@ curl -v https://app.london.automatalife.com
 
 Remember to remove it afterward to prevent stale DNS routing.
 
-### 6. Failover solutions
+## Failover solutions
 
 - Currently there're 2 clusters (`london` and `frankfurt`) in `CIVO` cloud provider running `workload` applications (`hello-world`)
 - `Hello World` app's traffic is being load-balanced between these 2 clusters thanks to `Cloudflare GLB`
@@ -107,13 +109,18 @@ Remember to remove it afterward to prevent stale DNS routing.
 - Then provision back again the cluster and see how traffic is re-routed back to `50/50` between `workload` clusters.
 - Delete `hello world` application from `london` cluster and validate traffic re-routing.
 
-### 7. (TODO) Storage
+## (TODO) Metrics
+
+- Applications deployed within cluster should automatically generated dashboards with relevant metrics for platform engineers and developers (`Open Telemetry`).
+
+## (TODO) Storage
 
 - Provisioning and manage `storage solutions` for applications deployed across multiple clusters across cloud providers.
+- Analise storage solutions within each cloud provider and centralized solutions to server multiple cloud providers.
 - Deploy sample application that relies on database (e.g.: `Ghost` blog)
 - Provide solutions around DB backups and restore.
 
-### 7. (TODO) Clusters hardening
+## (TODO) Clusters hardening
 
 Harden via Kubernetes Benchmarks
 
@@ -123,7 +130,7 @@ Use kube-bench to evaluate your cluster against the CIS Kubernetes Benchmark:
 kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml
 ```
 
-### 7. (TODO) Costs
+## (TODO) Costs
 
 https://github.com/kubecost
 
