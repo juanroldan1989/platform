@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/juanroldan1989/platform.git
     targetRevision: main
-    path: manifests/bootstrap/crossplane
+    path: bootstrap/crossplane
   syncPolicy:
     automated:
       selfHeal: true

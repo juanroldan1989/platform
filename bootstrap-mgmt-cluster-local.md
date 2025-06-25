@@ -35,7 +35,7 @@ cd platform
 k3d cluster create mgmt-cluster \
   --agents "2" \
   --agents-memory "4096m" \
-  --volume $PWD/manifests/bootstrap-k3d.yaml:/var/lib/rancher/k3s/server/manifests/bootstrap-k3d.yaml
+  --volume $PWD/bootstrap/mgmt-cluster.yaml:/var/lib/rancher/k3s/server/bootstrap/mgmt-cluster.yaml
 ```
 
 2. Extract `public-key` associated with `Sealed Secrets`:
@@ -50,7 +50,7 @@ k3d cluster create mgmt-cluster \
 k3d cluster create mgmt-cluster \
   --agents "2" \
   --agents-memory "4096m" \
-  --volume $PWD/manifests/bootstrap-k3d.yaml:/var/lib/rancher/k3s/server/manifests/bootstrap-k3d.yaml \
+  --volume $PWD/bootstrap/mgmt-cluster.yaml:/var/lib/rancher/k3s/server/bootstrap/mgmt-cluster.yaml \
   --volume $PWD/.sealed-secrets:/platform/.sealed-secrets
 ```
 
@@ -75,7 +75,7 @@ These tokens will be used by the `crossplane terraform provider` to allow provis
 1. `CIVO` and `Vultr` cloud infrastructure
 2. external-dns to create and adjust DNS records in those accounts.
 3. Run the `./scripts/seal-secret.sh`
-4. Commit changes made to `manifests/bootstrap/crossplane/0-crossplane-sealed-secret.yaml`
+4. Commit changes made to `bootstrap/crossplane/0-crossplane-sealed-secret.yaml`
 5. More info about this in [Secrets README](/secrets.md)
 
 ### 1.3 Wait for all pods in k3d to be Running / Completed

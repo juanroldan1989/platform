@@ -103,6 +103,6 @@ kubectl create secret generic aws-creds \
   --dry-run=client -o yaml | kubectl apply -f -
 
 echo "🔄 Provisioning mgmt-cluster with essentials ..."
-kubectl apply -f manifests/bootstrap/mgmt-cluster.yaml
+kubectl apply -f bootstrap/mgmt-cluster.yaml
 
 echo "✅ Bootstrap completed. ArgoCD should self-manage itself shortly."

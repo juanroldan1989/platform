@@ -5,7 +5,7 @@ set -euo pipefail
 # --- Configurable variables ---
 NAMESPACE="crossplane-system"
 SECRET_NAME="crossplane-secrets"
-OUTPUT_FILE="manifests/bootstrap/crossplane/0-crossplane-sealed-secrets.yaml"
+OUTPUT_FILE="bootstrap/crossplane/0-crossplane-sealed-secrets.yaml"
 
 # --- Ensure required environment variables are set ---
 : "${CIVO_TOKEN:?CIVO_TOKEN is required}"

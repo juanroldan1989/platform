@@ -21,7 +21,7 @@ The encrypted secret (a `SealedSecret`) can be safely stored in Git and will be 
 * **SealedSecret File Location**:
 
 ```
-manifests/bootstrap/crossplane/0-crossplane-sealed-secrets.yaml
+bootstrap/crossplane/0-crossplane-sealed-secrets.yaml
 ```
 
 * **Applied via**: ArgoCD as part of the `crossplane-terraform-provider` ArgoCD app.
@@ -43,7 +43,7 @@ manifests/bootstrap/crossplane/0-crossplane-sealed-secrets.yaml
 
 3. Encrypts the secret using `kubeseal` and the **re-used public key:**
 
-- Output: `manifests/bootstrap/crossplane/0-crossplane-sealed-secrets.yaml`
+- Output: `bootstrap/crossplane/0-crossplane-sealed-secrets.yaml`
 - Deletes any temporary plaintext secret files after sealing
 
 ### Persistent Encryption Key
@@ -56,14 +56,14 @@ To avoid re-sealing secrets every time a new cluster is created:
 
 ##  Key Details
 
-| Property             | Value                                                             |
-| -------------------- | ----------------------------------------------------------------- |
-| **Namespace**        | `crossplane-system`                                               |
-| **Secret Name**      | `crossplane-secrets`                                              |
-| **Sealed File Path** | `manifests/bootstrap/crossplane/0-crossplane-sealed-secrets.yaml` |
-| **Mounted By**       | Crossplane Terraform Provider via `envFrom`                       |
-| **Sealed Using**     | `sealed-secrets-public.pem` (checked into `.sealed-secrets/`)     |
-| **Managed By**       | ArgoCD (part of `crossplane` app sync wave)                       |
+| Property             | Value                                                         |
+| -------------------- | ------------------------------------------------------------- |
+| **Namespace**        | `crossplane-system`                                           |
+| **Secret Name**      | `crossplane-secrets`                                          |
+| **Sealed File Path** | `bootstrap/crossplane/0-crossplane-sealed-secrets.yaml`       |
+| **Mounted By**       | Crossplane Terraform Provider via `envFrom`                   |
+| **Sealed Using**     | `sealed-secrets-public.pem` (checked into `.sealed-secrets/`) |
+| **Managed By**       | ArgoCD (part of `crossplane` app sync wave)                   |
 
 ## When to Run This Script
 
