@@ -95,19 +95,23 @@ curl -v https://app.london.automatalife.com
 
 Remember to remove it afterward to prevent stale DNS routing.
 
-### 5. (TODO) Storage
+### 6. Failover solutions
 
-- How could I provision and manage storage solutions for my multi-cluster platform ?
-- What are the solutions to implement? (local setup / cloud solution: CIVO, Vultr)
-- Define a sample application that relies on database (e.g.: `Ghost` blog).
+- Currently there're 2 clusters (`london` and `frankfurt`) in `CIVO` cloud provider running `workload` applications (`hello-world`)
+- `Hello World` app's traffic is being load-balanced between these 2 clusters thanks to `Cloudflare GLB`
+- More info at [cloudflare-lb](/cloudflare-lb.md)
 
-### 6. (TODO) Failover solutions
+(TODO) Experiments to make:
 
-- I'd like to define 2 clusters in different cloud providers running `workload` applications.
-- Have traffic being load-balanced between these 2 clusters.
-- Then shutdown 1 cluster and see how traffic is re-routed 100% to the other cluster in real time.
-- Then provision back again the cluster and see how traffic is re-routed back to 50/50 between `workload` clusters.
-- Include scenarios to handle applications that rely on databases (e.g.: `Ghost` blog) and provide solution around DB backups and restore.
+- Shutdown 1 cluster and see how traffic is re-routed `100%` to the other cluster in real time.
+- Then provision back again the cluster and see how traffic is re-routed back to `50/50` between `workload` clusters.
+- Delete `hello world` application from `london` cluster and validate traffic re-routing.
+
+### 7. (TODO) Storage
+
+- Provisioning and manage `storage solutions` for applications deployed across multiple clusters across cloud providers.
+- Deploy sample application that relies on database (e.g.: `Ghost` blog)
+- Provide solutions around DB backups and restore.
 
 ### 7. (TODO) Clusters hardening
 
