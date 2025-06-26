@@ -1,0 +1,5 @@
+cloud_provider:
+  civo:
+    enabled: false
+  vultr:
+    enabled: false

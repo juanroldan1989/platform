@@ -1,21 +1,21 @@
 apiVersion: tf.upbound.io/v1beta1
 kind: Workspace
 metadata:
-  name: {{ .Values.name }}-infrastructure
+  name: {{ .Values.global.name }}-infrastructure
   annotations:
     argocd.argoproj.io/sync-wave: "20"
 spec:
   providerConfigRef:
-    name: {{ .Values.name }}
+    name: {{ .Values.global.name }}
   forProvider:
     source: Remote
     module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/civo_cluster?ref=main
     vars:
     - key: cluster_name
-      value: {{ .Values.name }}
+      value: {{ .Values.global.name }}
     - key: k8s_version
-      value: {{ .Values.k8s_version }}
+      value: {{ .Values.global.k8s_version }}
     - key: node_count
-      value: {{ .Values.node_count | quote }}
+      value: {{ .Values.global.node_count | quote }}
     - key: node_type
-      value: {{ .Values.node_type }}
+      value: {{ .Values.global.node_type }}

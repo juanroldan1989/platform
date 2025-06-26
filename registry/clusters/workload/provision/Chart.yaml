@@ -1,5 +1,14 @@
 apiVersion: v2
 name: provision
 version: 0.1.0
-description: Helm chart to provision workload clusters
-type: application
+description: Helm chart to provision workload clusters using different cloud providers
+
+dependencies:
+  - name: civo
+    version: 0.1.0
+    condition: cloud_provider.civo.enabled
+    repository: "file://civo"
+  - name: vultr
+    version: 0.1.0
+    condition: cloud_provider.vultr.enabled
+    repository: "file://vultr"

@@ -1,18 +1,23 @@
-# This file is used to define the configuration for the Frankfurt cluster.
+# Frankfurt Cluster Configuration
 
-# Kubernetes cluster configuration for Frankfurt region.
-name: frankfurt
-region: fra1
-k8s_version: 1.29.8-k3s1
-node_count: "1"
-node_type: g4s.kube.large
+## Kubernetes cluster configuration for Frankfurt cluster
+cloud_provider:
+  civo:
+    enabled: true
 
-# DNS Configuration for External DNS
+global:
+  name: frankfurt
+  region: fra1
+  k8s_version: 1.29.8-k3s1
+  node_count: "1"
+  node_type: g4s.kube.large
+
+## DNS Configuration for External DNS
 txtOwnerId: frankfurt
 domainFilters:
   - automatalife.com
 
-# Cert Manager Configuration
+## Cert Manager Configuration
 # This section defines the wildcard certificate for the Frankfurt cluster.
 # A wildcard certificate will be created for all namespaces listed under `namespaces`.
 cert_manager:

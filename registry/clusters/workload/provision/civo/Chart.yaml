@@ -1,0 +1,4 @@
+apiVersion: v2
+name: civo
+version: 0.1.0
+description: Helm chart to provision Civo workload clusters

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: vultr
+version: 0.1.0
+description: Helm chart to provision Vultr workload clusters

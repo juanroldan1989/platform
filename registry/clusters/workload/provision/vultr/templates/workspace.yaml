@@ -1,0 +1,27 @@
+# Vultr Cluster Workspace Configuration
+# This workspace is used to provision a Vultr Kubernetes cluster using Terraform.
+apiVersion: tf.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: {{ .Values.global.name }}-infrastructure
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  providerConfigRef:
+    name: {{ .Values.global.name }}
+  forProvider:
+    source: Remote
+    module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/vultr_cluster?ref=main
+    vars:
+    - key: region
+      value: {{ .Values.global.region }}
+    - key: cluster_name
+      value: {{ .Values.global.name }}
+    - key: node_count
+      value: {{ .Values.global.node_count | quote }}
+    - key: node_type
+      value: {{ .Values.global.node_type }}
+    - key: min_nodes
+      value: {{ .Values.global.min_nodes | quote }}
+    - key: max_nodes
+      value: {{ .Values.global.max_nodes | quote }}

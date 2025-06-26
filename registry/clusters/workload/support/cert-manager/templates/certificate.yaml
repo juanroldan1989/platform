@@ -14,7 +14,7 @@ spec:
     name: letsencrypt-dns
     kind: ClusterIssuer
   dnsNames:
-    - '*.{{ $root.Values.name }}.automatalife.com'
+    - '*.{{ $root.Values.global.name }}.automatalife.com'
 ---
 {{- end -}}
 {{- end -}}

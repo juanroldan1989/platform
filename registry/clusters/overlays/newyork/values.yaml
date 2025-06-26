@@ -1,29 +1,30 @@
-# London Cluster Configuration
+# NewYork Cluster Configuration
 
-## Kubernetes cluster configuration for London cluster
+## Kubernetes cluster configuration for NewYork cluster
 cloud_provider:
-  civo:
+  vultr:
     enabled: true
 
 global:
-  name: london
-  region: lon1
-  k8s_version: 1.29.8-k3s1
+  name: newyork
+  region: "ewr"
   node_count: "1"
-  node_type: g4s.kube.large
+  node_type: "vc2-2c-4gb"
+  min_nodes: "1"
+  max_nodes: "3"
 
 ## DNS Configuration for External DNS
-txtOwnerId: london
+txtOwnerId: newyork
 domainFilters:
   - automatalife.com
 
 ## Cert Manager Configuration
-# This section defines the wildcard certificate for London cluster.
+# This section defines the wildcard certificate for the NewYork cluster.
 # A wildcard certificate will be created for all namespaces listed under `namespaces`.
 cert_manager:
   wildcard:
     enabled: true
     namespaces:
       - cert-manager
-      - hello-london
-      # - goodbye-london
+      - hello-newyork
+      # - goodbye-newyork
