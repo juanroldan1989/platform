@@ -1,3 +1,4 @@
+# TODO: move terraform/modules out into `infra-modules` repository
 provider "http" {}
 
 data "http" "my_public_ip" {
