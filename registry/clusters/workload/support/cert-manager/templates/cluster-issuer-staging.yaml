@@ -1,15 +1,15 @@
-# For production environments
-# rate limits apply: max 5 certificates generated per week for the same DNS name
+# For non-production environments
+# no rate limits apply
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt-dns
+  name: letsencrypt-dns-staging
 spec:
   acme:
     email: automatalife@gmail.com
-    server: https://acme-v02.api.letsencrypt.org/directory
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
-      name: letsencrypt-dns-private-key
+      name: letsencrypt-dns-staging-private-key
     solvers:
       - dns01:
           cloudflare:

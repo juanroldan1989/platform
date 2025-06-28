@@ -5,16 +5,29 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: wildcard-cert
-  namespace: {{ . }}
+  namespace: {{ . }} # TODO: improve, generate 1 certificate per cluster instead of per namespace
 spec:
   secretName: wildcard-tls
   duration: 2160h # 90 days
   renewBefore: 360h # 15 days
   issuerRef:
-    name: letsencrypt-dns
+    name: letsencrypt-dns       # for production (rate limits apply)
+    # name: letsencrypt-dns-staging # for staging    (no rate limits)
     kind: ClusterIssuer
   dnsNames:
     - '*.{{ $root.Values.global.name }}.automatalife.com'
 ---
 {{- end -}}
 {{- end -}}
+
+# TODO note to improve:
+# this Certificate resource generates a unique `wildcard-tls` secret for each namespace of each app in the cluster.
+# This secret is used in the Ingress resources of each app in the cluster.
+
+# This is not ideal, we generate lots of certificates and that breaks the rate limits of Let's Encrypt.
+
+# We should generate a single `wildcard-tls` secret per cluster.
+# Use a lightweight Job, CronJob or ArgoCD App to copy the secret `wildcard-tls` to each app namespace
+# and use it in the Ingress resources of each app in the cluster.
+
+# This way we can use a single certificate for all apps in the cluster.
