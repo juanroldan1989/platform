@@ -1,3 +1,4 @@
+# TOOD: add another app -> goodbye-world
 apiVersion: v1
 kind: Namespace
 metadata:

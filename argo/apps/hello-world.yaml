@@ -21,7 +21,7 @@ spec:
       sources:
         - repoURL: https://github.com/juanroldan1989/platform.git
           targetRevision: main
-          path: registry/clusters/workload/apps
+          path: registry/clusters/apps
           helm:
             valueFiles:
               - $values/registry/clusters/overlays/{{name}}/values.yaml
