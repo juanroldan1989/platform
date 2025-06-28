@@ -99,11 +99,42 @@ Remember to remove it afterward to prevent stale DNS routing.
 
 ## Failover solutions
 
-- Currently there're 2 clusters (`london` and `frankfurt`) in `CIVO` cloud provider running `workload` applications (`hello-world`)
-- `Hello World` app's traffic is being load-balanced between these 2 clusters thanks to `Cloudflare GLB`.
-- If 1 cluster becomes unavailable, traffic is re-routed `100%` to the other cluster in real time.
+2 `workload` clusters provisioned in `CIVO` cloud provider:
+
+- `london`
+- `frankfurt`
+
+Running `workload` applications:
+
+- `Hello World` application traffic is load-balanced between these 2 clusters thanks to `Cloudflare GLB`.
+
+### Failover at `cluster` level
+
+- `london` cluster becomes unavailable.
+- Traffic is re-routed `100%` to `frankfurt` cluster.
 - Once the cluster is back up, traffic is re-routed back to `50/50` between `workload` clusters.
-- (TODO) Delete `hello world` application from `london` cluster and validate traffic re-routing.
+- We can simulate this scenario by removing `frankfurt` folder from `registry/clusters/overlays` folder.
+
+### Failover at `application` level
+
+- `Hello World` replica application in `london` cluster becomes unavailable.
+- Traffic is re-routed `100%` to `Hello World` replica application in `frankfurt` cluster.
+- We can simulate this scenario by removing `Hello World` app from `frankfurt` cluster:
+
+```yaml
+# argo/apps/hello-world.yaml
+
+...
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            cluster: "london"  # ArgoCD deploys app in "london" cluster only
+            # workload: "true" # ArgoCD deploys app in "workload" clusters
+...
+```
+
 - More info at [cloudflare-lb](/cloudflare-lb.md)
 
 ## (TODO) Metrics
