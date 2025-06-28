@@ -42,25 +42,29 @@ spec:
 
 1. `Hello World` application is removed from `frankfurt` cluster:
 
-<img width="699" alt="Screenshot 2025-06-28 at 12 38 00" src="https://github.com/user-attachments/assets/12d3a684-6440-437b-a441-3e804dd3d602" />
+<img width="676" alt="Screenshot 2025-06-28 at 12 41 10" src="https://github.com/user-attachments/assets/bff3643e-308c-4633-b8cf-0f2ff57fedd2" />
+
+---
+
+2. `Hello World` application from `frankfurt` cluster is not responsive:
 
 <img width="758" alt="Screenshot 2025-06-28 at 11 46 04" src="https://github.com/user-attachments/assets/32106435-cf87-4b42-bcc0-bfe0dfc591fe" />
 
 ---
 
-2. Cloudflare detects this endpoint is not available and marks its nodepool as `Unhealthy`:
+3. Cloudflare detects this endpoint is not available and marks its nodepool as `Unhealthy`:
 
 <img width="600" alt="Screenshot 2025-06-28 at 11 45 00" src="https://github.com/user-attachments/assets/07c00377-121a-4d7b-83f2-91aae4be5496" />
 
 ---
 
-3. Cloudflare also marks `Load Balancer` for `Hello World` application with `Health: Degraded`
+4. Cloudflare also marks `Load Balancer` for `Hello World` application with `Health: Degraded`
 
 <img width="1225" alt="Screenshot 2025-06-28 at 11 46 21" src="https://github.com/user-attachments/assets/c67751fd-931b-4ca5-8e5b-90d9a4886243" />
 
 ---
 
-4. Future requests to https://hello.automatalife.com/ will be redirected to `Hello World` application in `london` cluster:
+5. Future requests to https://hello.automatalife.com/ will be redirected to `Hello World` application in `london` cluster:
 
 <img width="500" alt="Screenshot 2025-06-28 at 11 45 26" src="https://github.com/user-attachments/assets/dc4541fe-d446-49d4-8235-81fb2aca72fa" />
 
