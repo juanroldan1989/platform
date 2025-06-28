@@ -13,15 +13,15 @@ spec:
             workload: "true"
   template:
     metadata:
-      name: hello-world-in-cluster-{{name}}
+      name: hello-world-in-{{name}}
       annotations:
-        argocd.argoproj.io/description: "Deploy Hello World App into {{name}} cluster"
+        argocd.argoproj.io/description: "Deploy Hello World App in {{name}} cluster"
     spec:
       project: default
       sources:
         - repoURL: https://github.com/juanroldan1989/platform.git
           targetRevision: main
-          path: registry/clusters/apps
+          path: registry/apps
           helm:
             valueFiles:
               - $values/registry/clusters/overlays/{{name}}/values.yaml
