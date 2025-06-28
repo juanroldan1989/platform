@@ -1,3 +1,4 @@
+# TODO: add variables for name, description
 resource "cloudflare_load_balancer" "hello_lb" {
   zone_id       = var.zone_id
   name          = "hello.automatalife.com"

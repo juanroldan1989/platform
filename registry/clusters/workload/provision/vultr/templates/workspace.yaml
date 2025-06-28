@@ -11,7 +11,7 @@ spec:
     name: {{ .Values.global.name }}
   forProvider:
     source: Remote
-    module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/vultr_cluster?ref=main
+    module: git::https://github.com/juanroldan1989/infra-modules.git//modules/vultr/cluster?ref=main
     vars:
     - key: region
       value: {{ .Values.global.region }}

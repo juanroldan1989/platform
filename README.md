@@ -100,14 +100,11 @@ Remember to remove it afterward to prevent stale DNS routing.
 ## Failover solutions
 
 - Currently there're 2 clusters (`london` and `frankfurt`) in `CIVO` cloud provider running `workload` applications (`hello-world`)
-- `Hello World` app's traffic is being load-balanced between these 2 clusters thanks to `Cloudflare GLB`
+- `Hello World` app's traffic is being load-balanced between these 2 clusters thanks to `Cloudflare GLB`.
+- If 1 cluster becomes unavailable, traffic is re-routed `100%` to the other cluster in real time.
+- Once the cluster is back up, traffic is re-routed back to `50/50` between `workload` clusters.
+- (TODO) Delete `hello world` application from `london` cluster and validate traffic re-routing.
 - More info at [cloudflare-lb](/cloudflare-lb.md)
-
-(TODO) Experiments to make:
-
-- Shutdown 1 cluster and see how traffic is re-routed `100%` to the other cluster in real time.
-- Then provision back again the cluster and see how traffic is re-routed back to `50/50` between `workload` clusters.
-- Delete `hello world` application from `london` cluster and validate traffic re-routing.
 
 ## (TODO) Metrics
 

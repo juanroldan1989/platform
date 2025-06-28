@@ -9,7 +9,7 @@ spec:
     name: {{ .Values.global.name }}
   forProvider:
     source: Remote
-    module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/civo_cluster?ref=main
+    module: git::https://github.com/juanroldan1989/infra-modules.git//modules/civo/cluster?ref=main
     vars:
     - key: cluster_name
       value: {{ .Values.global.name }}

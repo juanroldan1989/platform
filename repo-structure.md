@@ -75,19 +75,6 @@ Load balancer provisioning via Terraform and GitOps.
 - `overlays/hello-world/values.yaml`: Defines backend endpoints for Cloudflare LB.
 - `provision/`: Helm chart that provisions a `Workspace` to deploy the Cloudflare LB using Terraform.
 
-## `terraform/`
-
-Reusable Terraform modules used by Crossplane Workspaces.
-
-- `modules/civo_cluster/`: Module to provision `Civo` Kubernetes clusters.
-- `modules/vultr_cluster/`: Module to provision `Vultr` Kubernetes clusters.
-- `modules/cloudflare_lb/`: Module to provision a `Cloudflare Load Balancer`.
-
-Each module includes:
-
-- `main.tf`: Terraform resources
-- `variables.tf`: Input variables required by the module
-
 ## Docs & Guides
 
 - `README.md`: Project overview and getting started
