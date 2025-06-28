@@ -9,7 +9,11 @@
 
 Both clusters run `workload` applications:
 
-1. `Hello World` application: traffic is load-balanced between these 2 clusters thanks to `Cloudflare GLB`.
+### `Hello World` application
+
+Traffic is load-balanced between these 2 clusters thanks to `Cloudflare GLB`.
+
+<img width="1018" alt="Screenshot 2025-06-28 at 12 45 45" src="https://github.com/user-attachments/assets/2bb8c745-86c8-4a2b-b5ab-cb53a9d42917" />
 
 ## Failover at `cluster` level
 
@@ -64,7 +68,13 @@ spec:
 
 ---
 
-5. Future requests to https://hello.automatalife.com/ will be redirected to `Hello World` application in `london` cluster:
+5. Cloudflare also sends alert email to `notification_email` set within `Terraform` module when provisioning Cloudflare `GLB`:
+
+<img width="883" alt="Screenshot 2025-06-28 at 12 53 11" src="https://github.com/user-attachments/assets/2c8500bf-6cc5-4e7d-96d5-ffaef63fbbf1" />
+
+---
+
+6. Future requests to https://hello.automatalife.com/ will be redirected to `Hello World` application in `london` cluster:
 
 <img width="500" alt="Screenshot 2025-06-28 at 11 45 26" src="https://github.com/user-attachments/assets/dc4541fe-d446-49d4-8235-81fb2aca72fa" />
 
