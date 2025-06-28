@@ -1,66 +1,98 @@
-# Repository structure
+# Repository Structure
 
-This repository is structured to support
+This repository supports **full GitOps-based multi-cloud Kubernetes cluster provisioning** using
 
-TODO: update this structure with recent updates
+- **ArgoCD**
+- **Crossplane**
+- **Terraform**
 
-**full GitOps-based cluster and platform management** using `ArgoCD` and `Crossplane`.
+It is designed to be modular, extensible, and cloud-agnostic.
 
 ## `argo/`
 
-Contains all `ArgoCD` applications managed by the bootstrap `ArgoCD` instance.
+ArgoCD Applications and tool registration.
 
-- `app-of-apps.yaml`: Root `ArgoCD` application that registers all child apps (`tools`, `clusters`, etc.).
+- `app-of-apps.yaml`: Root ArgoCD `Application` that registers all other apps (tools, clusters, load balancers).
+- `apps/`: Standalone apps like `hello-world`.
+- `clusters/`: Cluster provisioning-related ArgoCD apps.
+  - `provision.yaml`: ArgoCD `ApplicationSet` that provisions clusters using Helm and Crossplane.
+  - `config.yaml`: Common ArgoCD `ApplicationSet` for per-cluster configuration (addons).
+  - `secrets/`: SealedSecrets for in-cluster and workload use.
+- `load_balancers/`: ArgoCD `ApplicationSet` that provisions global Cloudflare Load Balancers.
+- `tools/`: ArgoCD apps for platform-wide tools:
+  - `argocd-support/`: ArgoCD UI ingress and default project definition.
+  - `cert-manager/`, `eso/`, `crossplane/`: Helm charts for critical control-plane tools.
+  - `external-dns-config.yaml`, `ingress-nginx-config.yaml`, `sealed-secrets.yaml`: Configuration for common ingress/DNS/secrets tools.
 
-- `apps/`: Folder containing categorized `ArgoCD` Applications.
+## `bootstrap/`
 
-- `clusters/`: Cluster provisioning apps (e.g.: `london.yaml` provisions a `Civo` Kubernetes cluster).
+Bootstrapping logic for initializing the management cluster.
 
-- `tools/`: Platform tool installation apps, such as `Crossplane` and its `Terraform` provider.
+- `mgmt-cluster.yaml`: First app applied to install ArgoCD and launch GitOps.
+- `crossplane/`: Bootstrap sequence for Crossplane and Terraform runtime.
+  - `0-crossplane-sealed-secrets.yaml`: SealedSecrets required for provider tokens.
+  - `1-rbac-argocd-crossplane.yaml`: ArgoCD RBAC permissions to manage Crossplane.
+  - `2-provider-terraform.yaml`: Installs the Crossplane Terraform provider.
+  - `3-provider-terraform-config.yaml`: Terraform provider configuration.
+  - `4-toolbox.yaml`: Utility jobs/resources.
 
-## `bootstrap.md`
+## `scripts/`
 
-A step-by-step guide for:
+Helper shell scripts used during cluster bootstrapping or secret management.
 
-- bootstrapping the local `mgmt-cluster`
-- installing `ArgoCD`
-- configuring secrets
-- initializing `GitOps` management
-
-## `manifests/`
-
-Raw `Kubernetes` manifests used during **initial bootstrapping**, applied automatically by the `bootstrap-k3d.yaml`.
-
-- `bootstrap-k3d.yaml`: Core file mounted into `k3d` to provision `ArgoCD` and **start the GitOps engine.**
-
-- `bootstrap/crossplane/`: Resources needed to bootstrap `Crossplane`.
-
--- `0-crossplane-secrets.yaml`: Secret holding your `CIVO` API token.
-
--- `1-rbac-argocd-crossplane.yaml`: Grants `ArgoCD` permission to manage `Crossplane Workspaces`.
-
--- `2-provider-terraform.yaml`: Installs the `Crossplane Terraform` provider.
-
--- `3-provider-terraform-config.yaml`: Configures the `Terraform` provider runtime.
+- `bootstrap-mgmt-cluster-remote.sh`: Provisions a remote Civo cluster and bootstraps GitOps.
+- `seal-mgmt-secrets.sh`: Seals secret tokens for bootstrap use.
 
 ## `registry/`
 
-GitOps-friendly registry of cluster provisioning resources.
+Declarative cluster and addon configuration for all environments.
 
-- `clusters/london/`: Defines everything needed to provision a `london` Kubernetes cluster via `Crossplane`.
+### `clusters/`
 
--- `provider-config.yaml`: Configures **backend and credentials** for `Terraform`.
+- `in-cluster/`: Configuration and secrets for the management cluster itself.
+- `overlays/`: Per-cluster overlays (e.g. `london`, `frankfurt`, `newyork`) containing `values.yaml` used by ApplicationSets to determine cluster-specific values.
+- `workload/`: Helm charts to provision and configure clusters.
 
--- `workspace.yaml`: Triggers the `Terraform` module that **provisions the cluster.**
+#### `workload/provision/`
 
--- `wait.yaml`: Waits for the workspace to complete before continuing.
+- `Chart.yaml`: Main chart with subchart dependencies for supported cloud providers (e.g., `civo`, `vultr`).
+- `values.yaml`: Shared/default values for provisioning.
+- `civo/`, `vultr/`: Subcharts with provider-specific templates:
+  - `provider-config.yaml`: Crossplane ProviderConfig definition (Terraform + credentials).
+  - `workspace.yaml`: Crossplane Workspace definition pointing to a Terraform module.
+  - `wait.yaml`: Optional resource wait logic.
+
+#### `workload/config/`, `workload/apps/`, `workload/support/`, `workload/secrets/`
+
+- Configuration for addons (`cert-manager`, `external-dns`, `ingress-nginx`, `eso`)
+- Application deployment charts (`hello-world`)
+- Cluster-wide support files (`cluster-issuer`, RBAC, sealed secrets, etc.)
+
+## `registry/load_balancers/`
+
+Load balancer provisioning via Terraform and GitOps.
+
+- `overlays/hello-world/values.yaml`: Defines backend endpoints for Cloudflare LB.
+- `provision/`: Helm chart that provisions a `Workspace` to deploy the Cloudflare LB using Terraform.
 
 ## `terraform/`
 
-Reusable `Terraform` modules used by `Crossplane Workspaces`.
+Reusable Terraform modules used by Crossplane Workspaces.
 
-- `modules/cluster/`: The `Terraform` logic for **provisioning a Civo cluster.**
+- `modules/civo_cluster/`: Module to provision `Civo` Kubernetes clusters.
+- `modules/vultr_cluster/`: Module to provision `Vultr` Kubernetes clusters.
+- `modules/cloudflare_lb/`: Module to provision a `Cloudflare Load Balancer`.
 
--- `main.tf`: Declares the network, firewall, Kubernetes cluster and ArgoCD access setup.
+Each module includes:
 
--- `variables.tf`: Defines expected input variables like `cluster_name`, `node_count`, etc.
+- `main.tf`: Terraform resources
+- `variables.tf`: Input variables required by the module
+
+## Docs & Guides
+
+- `README.md`: Project overview and getting started
+- `repo-structure.md`: This file
+- `bootstrap-mgmt-cluster-local.md`: Step-by-step for `local` development
+- `bootstrap-mgmt-cluster-remote.md`: Step-by-step for `remote` MGMT production cluster
+- `civo.md`, `vultr.md`: Cloud-specific setup notes
+- `cloudflare-lb.md`, `dns.md`, `secrets.md`: Functional documentation for external DNS, LB, and secrets management
