@@ -10,8 +10,8 @@ spec:
     - clusters:
         selector:
           matchLabels:
-            cluster: "london"
-            # workload: "true"
+            # cluster: "london"
+            workload: "true"
   template:
     metadata:
       name: hello-world-in-{{name}}
