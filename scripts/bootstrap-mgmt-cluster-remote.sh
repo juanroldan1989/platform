@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Customize these variables
 AWS_PROFILE="default"
-CLUSTER_NAME="mgmt-cluster"
+CLUSTER_NAME="mgmt"
 NODE_COUNT=1
 NODE_SIZE="g4s.kube.large"
 K8S_VERSION="1.29.8-k3s1"
@@ -78,7 +78,7 @@ echo "✅ Cluster created and kubeconfig updated locally"
 
 echo "🔗 Setting up kubeconfig for the new cluster..."
 unset KUBECONFIG
-kubectl config use-context mgmt-cluster
+kubectl config use-context mgmt
 
 echo "🔐 Injecting Sealed Secrets public key..."
 kubectl apply -f .sealed-secrets/mgmt/sealed-secrets-key.yaml -n kube-system
@@ -102,7 +102,7 @@ kubectl create secret generic aws-creds \
   --from-literal=secret-access-key="$SECRET_KEY" \
   --dry-run=client -o yaml | kubectl apply -f -
 
-echo "🔄 Provisioning mgmt-cluster with essentials ..."
+echo "🔄 Provisioning "management" cluster with essentials ..."
 kubectl apply -f bootstrap/mgmt-cluster.yaml
 
 echo "✅ Bootstrap completed. ArgoCD should self-manage itself shortly."

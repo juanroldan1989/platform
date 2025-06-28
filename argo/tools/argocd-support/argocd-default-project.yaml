@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/juanroldan1989/platform
     targetRevision: main
-    path: registry/clusters/in-cluster/apps
+    path: registry/clusters/mgmt/apps
     directory:
       include: default-project.yaml
   syncPolicy:

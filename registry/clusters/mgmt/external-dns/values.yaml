@@ -2,7 +2,7 @@ provider: cloudflare
 policy: sync
 domainFilters:
   - automatalife.com
-txtOwnerId: in-cluster
+txtOwnerId: mgmt
 
 env:
   - name: CF_API_TOKEN
