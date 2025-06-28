@@ -104,6 +104,7 @@ resource "kubernetes_secret_v1" "argocd_cluster_secret" {
     labels = {
       "argocd.argoproj.io/secret-type" = "cluster"
       "workload"                       = "true"
+      "cluster"                        = var.cluster_name
     }
   }
   data = {

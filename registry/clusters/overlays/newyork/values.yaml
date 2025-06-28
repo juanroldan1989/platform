@@ -1,9 +1,9 @@
 # NewYork Cluster Configuration
 
 ## Kubernetes cluster configuration for NewYork cluster
-cloud_provider:
-  vultr:
-    enabled: true
+# cloud_provider:
+  # vultr:
+    # enabled: true # Temporarily disabled until Vultr cloud provider allows for Kubernetes clusters
 
 global:
   name: newyork
