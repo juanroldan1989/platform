@@ -99,7 +99,8 @@ Remember to remove it afterward to prevent stale DNS routing.
 
 ## Failover scenarios
 
-All details added [here](/failover.md)
+- `Hello World` app (stateless): All details [here](/failover-hello-world.md)
+- `Blog` app (stateful): All details [here](/failover-blog.md)
 
 ## (TODO) Metrics
 

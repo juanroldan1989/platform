@@ -1,4 +1,4 @@
-# Failover scenarios
+# Failover scenarios (`Hello World` app)
 
 ## Initial state
 
