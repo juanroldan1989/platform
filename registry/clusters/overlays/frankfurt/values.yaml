@@ -1,9 +1,9 @@
 # Frankfurt Cluster Configuration
 
 ## Kubernetes cluster configuration for Frankfurt cluster
-cloud_provider:
-  civo:
-    enabled: true
+# cloud_provider:
+#   civo:
+#     enabled: true # Temporarily disabled for simplicity purposes
 
 global:
   name: frankfurt
@@ -26,4 +26,4 @@ cert_manager:
     namespaces:
       - cert-manager
       - hello-frankfurt
-      # - goodbye-frankfurt
+      - blog-frankfurt

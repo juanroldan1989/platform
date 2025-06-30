@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: hello-world
+  name: blog
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "70"
@@ -14,15 +14,15 @@ spec:
             workload: "true"
   template:
     metadata:
-      name: hello-world-in-{{name}}
+      name: blog-in-{{name}}
       annotations:
-        argocd.argoproj.io/description: "Deploy Hello World App in {{name}} cluster"
+        argocd.argoproj.io/description: "Deploy Blog (Ghost) App in {{name}} cluster"
     spec:
       project: default
       sources:
         - repoURL: https://github.com/juanroldan1989/platform.git
           targetRevision: main
-          path: registry/apps/hello-world
+          path: registry/apps/blog
           helm:
             valueFiles:
               - $values/registry/clusters/overlays/{{name}}/values.yaml
@@ -31,7 +31,7 @@ spec:
           ref: values
       destination:
         name: '{{name}}'
-        namespace: hello-{{name}}
+        namespace: blog-{{name}}
       syncPolicy:
         automated:
           prune: true

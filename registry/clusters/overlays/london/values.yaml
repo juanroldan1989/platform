@@ -26,4 +26,4 @@ cert_manager:
     namespaces:
       - cert-manager
       - hello-london
-      # - goodbye-london
+      - blog-london

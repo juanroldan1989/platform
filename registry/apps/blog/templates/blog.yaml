@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: blog-{{ .Values.global.name }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blog-content
+  namespace: blog-{{ .Values.global.name }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-{{ .Values.global.name }}
+  namespace: blog-{{ .Values.global.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog
+  template:
+    metadata:
+      labels:
+        app: blog
+    spec:
+      containers:
+        - name: blog
+          image: ghost:5-alpine
+          ports:
+            - containerPort: 2368
+          volumeMounts:
+            - name: content
+              mountPath: /var/lib/blog/content
+      volumes:
+        - name: content
+          persistentVolumeClaim:
+            claimName: blog-content
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blog-{{ .Values.global.name }}
+  namespace: blog-{{ .Values.global.name }}
+spec:
+  selector:
+    app: blog
+  ports:
+    - port: 80
+      targetPort: 2368
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: blog-ingress-{{ .Values.global.name }}
+  namespace: blog-{{ .Values.global.name }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  tls:
+    - hosts:
+        - blog.{{ .Values.global.name }}.automatalife.com
+        - blog.automatalife.com
+      secretName: wildcard-tls
+  rules:
+    - host: blog.{{ .Values.global.name }}.automatalife.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: blog-{{ .Values.global.name }}
+                port:
+                  number: 80
+    - host: blog.automatalife.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: blog-{{ .Values.global.name }}
+                port:
+                  number: 80

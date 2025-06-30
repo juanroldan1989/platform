@@ -129,7 +129,7 @@ spec:
     - "*.frankfurt.automatalife.com"
 ```
 
-- And deploy that `certificate` to all relevant app namespaces (e.g.: `hello-frankfurt`, `goodbye-frankfurt`, etc) where applications's ingress exist.
+- And deploy that `certificate` to all relevant app namespaces (e.g.: `hello-frankfurt`, `blog-frankfurt`, etc) where applications's ingress exist.
 
 - Each application `Ingress` uses the **shared secret wildcard-tls** (copied to each namespace), and this works because:
 
