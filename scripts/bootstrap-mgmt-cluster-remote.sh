@@ -7,7 +7,7 @@ AWS_PROFILE="default"
 CLUSTER_NAME="mgmt"
 NODE_COUNT=1
 NODE_SIZE="g4s.kube.large"
-K8S_VERSION="1.29.8-k3s1"
+K8S_VERSION="1.30.5-k3s1"
 REGION="LON1"
 
 echo "🌍 Detecting your public IP..."
