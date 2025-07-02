@@ -14,7 +14,9 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: standard
+{{- if .Values.global.storage_class }}
+  storageClassName: {{ .Values.global.storage_class }}
+{{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -36,9 +38,12 @@ spec:
           image: ghost:5-alpine
           ports:
             - containerPort: 2368
+          env:
+            - name: database__client
+              value: sqlite3
           volumeMounts:
             - name: content
-              mountPath: /var/lib/blog/content
+              mountPath: /var/lib/ghost/content
       volumes:
         - name: content
           persistentVolumeClaim:

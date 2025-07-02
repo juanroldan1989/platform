@@ -11,6 +11,7 @@ global:
   k8s_version: 1.30.5-k3s1
   node_count: "1"
   node_type: g4s.kube.large
+  storage_class: civo-volume
 
 ## DNS Configuration for External DNS
 txtOwnerId: frankfurt
