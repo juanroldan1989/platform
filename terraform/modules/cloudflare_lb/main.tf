@@ -1,8 +1,7 @@
-# TODO: add variables for name, description
 resource "cloudflare_load_balancer" "hello_lb" {
   zone_id       = var.zone_id
-  name          = "hello.automatalife.com"
-  description   = "Global Load balancer for hello.automatalife.com"
+  name          = var.domain_name
+  description   = "Global Load balancer for ${var.domain_name}"
   enabled       = true # Disabling a load balancer will cause it to stop routing traffic, but it will not delete the load balancer.
 
   default_pools = [
@@ -33,35 +32,35 @@ resource "cloudflare_load_balancer" "hello_lb" {
 
 resource "cloudflare_load_balancer_pool" "london" {
   account_id = var.account_id
-  name       = "london-pool"
+  name       = "london-pool-${var.app_name}"
   enabled    = true # Disabling a pool will cause any load balancers using it to failover to the next pool (if any).
   origins    = [
     {
-      name    = "london-hello"
-      address = "app.london.automatalife.com"
+      name    = "london-endpoint"
+      address = var.london_pool_address
       enabled = true
     }
   ]
-  monitor            = cloudflare_load_balancer_monitor.hello_monitor.id
+  monitor            = cloudflare_load_balancer_monitor.monitor.id
   notification_email = var.notification_email
 }
 
 resource "cloudflare_load_balancer_pool" "frankfurt" {
   account_id = var.account_id
-  name       = "frankfurt-pool"
+  name       = "frankfurt-pool-${var.app_name}"
   enabled    = true # Disabling a pool will cause any load balancers using it to failover to the next pool (if any).
   origins    = [
     {
-      name    = "frankfurt-hello"
-      address = "app.frankfurt.automatalife.com"
+      name    = "frankfurt-endpoint"
+      address = var.frankfurt_pool_address
       enabled = true
     }
   ]
-  monitor            = cloudflare_load_balancer_monitor.hello_monitor.id
+  monitor            = cloudflare_load_balancer_monitor.monitor.id
   notification_email = var.notification_email
 }
 
-resource "cloudflare_load_balancer_monitor" "hello_monitor" {
+resource "cloudflare_load_balancer_monitor" "monitor" {
   account_id       = var.account_id
   expected_body    = ""
   expected_codes   = "200"

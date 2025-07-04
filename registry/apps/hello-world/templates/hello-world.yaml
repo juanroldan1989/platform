@@ -48,11 +48,11 @@ metadata:
 spec:
   tls:
     - hosts:
-        - app.{{ .Values.global.name }}.automatalife.com
+        - hello.{{ .Values.global.name }}.automatalife.com
         - hello.automatalife.com
       secretName: wildcard-tls
   rules:
-    - host: app.{{ .Values.global.name }}.automatalife.com
+    - host: hello.{{ .Values.global.name }}.automatalife.com
       http:
         paths:
           - path: /

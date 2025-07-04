@@ -1,7 +1,14 @@
 # Load Balancer Configuration for Hello World App
 
-name: hello-world
-cloudflare:
-  account_id: 7b2ce612d838f3c395562afdb1d90084
-  zone_id: 027d094f98fd44b8fe6e7d12cbae83de
-  notification_email: automatalife@gmail.com
+# Temporarily disabled for testing GLB cloudflare setup within Blog app
+# There's a limit in Cloudflare's plan for `Endpoints` (2) associated with a Load Balancer
+# and we are using 2 endpoints already for Hello World app located each endpoint in 1 Pool (London and Frankfurt)
+
+# name: hello-world
+# cloudflare:
+#   account_id: 7b2ce612d838f3c395562afdb1d90084
+#   zone_id: 027d094f98fd44b8fe6e7d12cbae83de
+#   notification_email: automatalife@gmail.com
+#   domain_name: hello.automatalife.com
+#   london_pool_address: hello.london.automatalife.com
+#   frankfurt_pool_address: hello.frankfurt.automatalife.com

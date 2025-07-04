@@ -1,0 +1,10 @@
+# Load Balancer Configuration for Blog App
+
+name: blog
+cloudflare:
+  account_id: 7b2ce612d838f3c395562afdb1d90084
+  zone_id: 027d094f98fd44b8fe6e7d12cbae83de
+  notification_email: automatalife@gmail.com
+  domain_name: blog.automatalife.com
+  london_pool_address: blog.london.automatalife.com
+  frankfurt_pool_address: blog.frankfurt.automatalife.com

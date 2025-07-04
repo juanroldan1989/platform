@@ -39,6 +39,8 @@ spec:
           ports:
             - containerPort: 2368
           env:
+            - name: url
+              value: http://blog.automatalife.com
             - name: database__client
               value: mysql
             - name: database__connection__host

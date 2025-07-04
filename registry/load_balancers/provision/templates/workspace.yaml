@@ -17,3 +17,11 @@ spec:
       value: "{{ .Values.cloudflare.zone_id }}"
     - key: notification_email
       value: "{{ .Values.cloudflare.notification_email }}"
+    - key: app_name
+      value: "{{ .Values.name }}"
+    - key: domain_name
+      value: "{{ .Values.cloudflare.domain_name }}"
+    - key: london_pool_address
+      value: "{{ .Values.cloudflare.london_pool_address }}"
+    - key: frankfurt_pool_address
+      value: "{{ .Values.cloudflare.frankfurt_pool_address }}"
