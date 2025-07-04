@@ -1,0 +1,11 @@
+auth:
+  existingSecret: blog-db-creds # This secret will be created via ESO
+  database: ghost_db            # The DB name Ghost will connect to
+  username: ghost               # Needed for internal user setup
+  password: ""                  # Intentionally blank (ESO populates)
+  rootPassword: ""              # Intentionally blank (ESO populates)
+
+primary:
+  persistence:
+    enabled: true
+    size: 5Gi

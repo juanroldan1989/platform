@@ -27,4 +27,4 @@ cert_manager:
     namespaces:
       - cert-manager
       - hello-frankfurt
-      - blog-frankfurt
+      - blog-db
