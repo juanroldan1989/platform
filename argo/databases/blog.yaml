@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "80"
+    argocd.argoproj.io/diff-options: |
+      IgnoreExtraneous
 spec:
   generators:
     - clusters:
