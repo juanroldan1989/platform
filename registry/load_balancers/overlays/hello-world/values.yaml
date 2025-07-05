@@ -12,3 +12,5 @@
 #   domain_name: hello.automatalife.com
 #   london_pool_address: hello.london.automatalife.com
 #   frankfurt_pool_address: hello.frankfurt.automatalife.com
+#   monitor_expected_codes: "200"
+#   monitor_path: "/"

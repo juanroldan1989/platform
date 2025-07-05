@@ -37,3 +37,15 @@ variable "frankfurt_pool_address" {
   description = "The address of the Frankfurt pool origin."
   type        = string
 }
+
+variable "monitor_expected_codes" {
+  description = "Expected HTTP status codes for the health check monitor."
+  type        = string
+  default     = "200,301,302"
+}
+
+variable "monitor_path" {
+  description = "The path to check for the health of the origin servers."
+  type        = string
+  default     = "/"
+}

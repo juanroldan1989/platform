@@ -63,9 +63,9 @@ resource "cloudflare_load_balancer_pool" "frankfurt" {
 resource "cloudflare_load_balancer_monitor" "monitor" {
   account_id       = var.account_id
   expected_body    = ""
-  expected_codes   = "200"
+  expected_codes   = var.monitor_expected_codes
   method           = "GET"
-  path             = "/"
+  path             = var.monitor_path
   port             = 443
   type             = "https"
   timeout          = 5

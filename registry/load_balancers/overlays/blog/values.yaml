@@ -8,3 +8,5 @@ cloudflare:
   domain_name: blog.automatalife.com
   london_pool_address: blog.london.automatalife.com
   frankfurt_pool_address: blog.frankfurt.automatalife.com
+  monitor_expected_codes: "200,301,302"
+  monitor_path: "/ghost/api/admin/site/"
