@@ -5,7 +5,10 @@ auth:
   password: ""                  # Intentionally blank (ESO populates)
   rootPassword: ""              # Intentionally blank (ESO populates)
 
+# Volume for Ghost to store "Structured Content: Posts, Users, Tags, Pages"
 primary:
   persistence:
     enabled: true
     size: 5Gi
+
+# Volume for Ghost to store "Media Files": Images, Uploads, Attachments is defined in the blog app
