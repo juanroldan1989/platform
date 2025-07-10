@@ -1,0 +1,27 @@
+apiVersion: tf.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: {{ .Values.name }}-database-infrastructure
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  providerConfigRef:
+    name: {{ .Values.name }}-database
+  forProvider:
+    source: Remote
+    module: git::https://github.com/juanroldan1989/platform.git//terraform/modules/civo_database?ref=main
+    vars:
+    - key: database_name
+      value: "{{ .Values.database.name }}"
+    - key: database_size
+      value: "{{ .Values.database.size }}"
+    - key: mysql_version
+      value: "{{ .Values.database.version }}"
+    - key: database_username
+      value: "{{ .Values.database.username }}"
+    - key: region
+      value: "{{ .Values.region }}"
+    - key: nodes
+      value: "{{ .Values.database.nodes | quote }}"
+    - key: target_namespace
+      value: "{{ .Values.database.target_namespace }}"

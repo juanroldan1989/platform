@@ -4,34 +4,35 @@ metadata:
   name: blog-db
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "80"
+    argocd.argoproj.io/sync-wave: "10"
     argocd.argoproj.io/diff-options: |
       IgnoreExtraneous
 spec:
   generators:
-    - clusters:
-        selector:
-          matchLabels:
-            workload: "true"
+    - git:
+        repoURL: https://github.com/juanroldan1989/platform.git
+        revision: main
+        directories:
+          - path: registry/databases/overlays/*
   template:
     metadata:
-      name: blog-db-{{name}}
+      name: database-for-{{path.basename}}
       annotations:
-        argocd.argoproj.io/description: "Provision MySQL DB for Ghost blog in cluster {{name}}"
+        argocd.argoproj.io/description: "Provision Managed DB for {{path.basename}}"
     spec:
       project: default
       sources:
-        - repoURL: https://charts.bitnami.com/bitnami
-          chart: mysql
-          targetRevision: 9.22.0  # or latest
+        - repoURL: https://github.com/juanroldan1989/platform.git
+          targetRevision: main
+          path: registry/databases/provision
           helm:
             valueFiles:
-              - $values/registry/clusters/workload/config/blog-db/values.yaml
+              - $values/registry/databases/overlays/{{path.basename}}/values.yaml
         - repoURL: https://github.com/juanroldan1989/platform
           targetRevision: main
           ref: values
       destination:
-        name: '{{name}}'
+        name: in-cluster
         namespace: blog-db
       syncPolicy:
         automated:

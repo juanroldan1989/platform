@@ -1,0 +1,47 @@
+apiVersion: tf.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: {{ .Values.name }}-database
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  configuration: |
+    terraform {
+      backend "kubernetes" {
+        secret_suffix     = "providerconfig-{{ .Values.name }}-database"
+        namespace         = "crossplane-system"
+        in_cluster_config = true
+      }
+
+      required_providers {
+        civo = {
+          source = "civo/civo"
+          version = "1.1.0"
+        }
+
+        kubernetes = {
+          source = "hashicorp/kubernetes"
+          version = "2.23.0"
+        }
+
+        aws = {
+          source  = "hashicorp/aws"
+          version = "~> 5.0"
+        }
+      }
+    }
+
+    provider "aws" {
+      region = "us-east-1"
+    }
+
+    provider "civo" {
+      region = "{{ .Values.region }}"
+    }
+  credentials:
+    - filename: gen-nothing
+      source: Secret
+      secretRef:
+        namespace: crossplane-system
+        name: crossplane-secrets
+        key: CIVO_TOKEN
