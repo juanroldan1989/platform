@@ -44,19 +44,25 @@ spec:
             - name: database__client
               value: mysql
             - name: database__connection__host
-              value: blog-db-{{ .Values.global.name }}-mysql.blog-db.svc.cluster.local
+              valueFrom:
+                secretKeyRef:
+                  name: blog-db-managed-creds
+                  key: host
             - name: database__connection__user
               valueFrom:
                 secretKeyRef:
-                  name: blog-db-creds
-                  key: mysql-username
+                  name: blog-db-managed-creds
+                  key: username
             - name: database__connection__password
               valueFrom:
                 secretKeyRef:
-                  name: blog-db-creds
-                  key: mysql-password
+                  name: blog-db-managed-creds
+                  key: password
             - name: database__connection__database
-              value: ghost_db
+              valueFrom:
+                secretKeyRef:
+                  name: blog-db-managed-creds
+                  key: database
           volumeMounts:
             - name: content
               mountPath: /var/lib/ghost/content
