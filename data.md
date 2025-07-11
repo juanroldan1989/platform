@@ -183,6 +183,156 @@ which **interfaces with the cloud provider’s native block storage** (like `CIV
 | **Pros** | Single source of truth. No data drift. Built-in availability. **Data safe even if clusters go down.** |
 | **Cons** | Higher cost. Networking complexity. Data security (must secure access).                               |
 
+
+#### **Implementation: GitOps-Based Multi-Cluster Database Provisioning**
+
+**Phase 3 Implementation Status: ✅ COMPLETED**
+
+This setup uses a sophisticated GitOps workflow that automatically provisions a shared CIVO managed database and distributes credentials securely across all clusters using AWS Secrets Manager and External Secrets Operator (ESO).
+
+#### **5-Step Secret Distribution Flow**
+
+1. **CIVO Database** → Created by Terraform in management cluster
+2. **K8s Secret** (`blog-db-managed-creds`) → Created by Terraform in mgmt cluster
+3. **PushSecret** → Pushes credentials to AWS Secrets Manager
+4. **ExternalSecret** → Pulls credentials from AWS Secrets Manager to workload cluster
+5. **Blog App** → Uses the synced credentials to connect to the CIVO managed database
+
+#### **Technical Architecture**
+
+**Management Cluster (in-cluster)**:
+- Terraform/Crossplane provision CIVO managed database
+- Database credentials stored in Kubernetes secret
+- ESO PushSecret pushes credentials to AWS Secrets Manager
+- ArgoCD manages the entire GitOps workflow
+
+**Workload Clusters (london, frankfurt, etc.)**:
+- ESO ExternalSecret pulls credentials from AWS Secrets Manager
+- Applications consume database credentials from local Kubernetes secrets
+- All clusters connect to the same shared CIVO managed database
+
+#### **Key Components**
+
+**Database Provisioning**:
+```yaml
+# registry/databases/provision/templates/workspace.yaml
+apiVersion: tf.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: civo-managed-db-database-infrastructure
+spec:
+  forProvider:
+    module: git::https://github.com/user/platform.git//terraform/modules/civo_database
+    vars:
+    - key: civo_token
+      type: secret
+      secretKeyRef:
+        name: crossplane-secrets
+        key: CIVO_TOKEN
+```
+
+**Secret Push (Management Cluster)**:
+```yaml
+# registry/databases/provision/templates/eso-push-secret.yaml
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: civo-managed-db-database-push
+spec:
+  secretStoreRefs:
+    - name: cluster-secretstore
+      kind: ClusterSecretStore
+  selector:
+    secret:
+      name: blog-db-managed-creds
+  data:
+    - match:
+        secretKey: username
+        remoteRef:
+          remoteKey: civo/blog-database-credentials
+          property: username
+```
+
+**Secret Pull (Workload Clusters)**:
+```yaml
+# registry/clusters/workload/secrets/blog-db-secret-sync.yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: blog-db-credentials
+spec:
+  secretStoreRef:
+    name: cluster-secretstore
+    kind: ClusterSecretStore
+  target:
+    name: blog-db-managed-creds
+  data:
+    - secretKey: username
+      remoteRef:
+        key: civo/blog-database-credentials
+        property: username
+```
+
+**Application Configuration**:
+```yaml
+# registry/apps/blog/templates/blog.yaml
+env:
+  - name: database__connection__host
+    valueFrom:
+      secretKeyRef:
+        name: blog-db-managed-creds
+        key: host
+  - name: database__connection__user
+    valueFrom:
+      secretKeyRef:
+        name: blog-db-managed-creds
+        key: username
+```
+
+#### **Real-World Implementation Status**
+
+**Database Provisioning Status**:
+```bash
+# Check CIVO managed database status
+kubectl get workspace -n blog-db
+# NAME                                        READY   SYNCED   AGE
+# civo-managed-db-database-infrastructure     True    True     45m
+
+# Check database credentials secret
+kubectl get secret blog-db-managed-creds -n blog-db -o jsonpath='{.data}' | jq
+# Contains: username, password, host, port, database, connection_string
+```
+
+**Secret Distribution Status**:
+```bash
+# Management cluster - PushSecret status
+kubectl get pushsecret -A
+# NAMESPACE   NAME                            AGE     STATUS
+# blog-db     civo-managed-db-database-push   2m56s   Synced
+
+# AWS Secrets Manager - Verify secret exists
+aws secretsmanager describe-secret --secret-id civo/blog-database-credentials
+# SecretName: civo/blog-database-credentials
+# Description: Database credentials pushed from Kubernetes
+
+# Workload cluster - ExternalSecret status
+kubectl get externalsecret -A
+# NAMESPACE   NAME                 STORE                 REFRESH INTERVAL   STATUS
+# blog-db     blog-db-credentials  cluster-secretstore   1m                 SecretSynced
+```
+
+**Application Connection Status**:
+```bash
+# Check blog application environment variables
+kubectl get pod -n blog-db -l app=blog -o jsonpath='{.items[0].spec.containers[0].env}' | jq
+# Shows database__connection__host, database__connection__user, etc.
+# All sourced from blog-db-managed-creds secret
+
+# Test database connectivity
+kubectl exec -it deployment/blog-db -n blog-db -- mysql -h <host> -u <user> -p<password> -e "SHOW DATABASES;"
+# Should show the shared CIVO managed database
+```
+
 ---
 
 ### **Phase 4 — Multi-Cloud, Multi-Cluster, Shared Managed DB**

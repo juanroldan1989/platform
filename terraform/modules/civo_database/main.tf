@@ -21,6 +21,8 @@ resource "civo_database" "db" {
 
   # Let CIVO use default network and firewall if not specified
   # This ensures shared access across clusters in the same region
+  # TODO: validate this configuration, since using the "default" network and firewall
+  # may not be ideal since it's not secure. We should consider creating a dedicated network and firewall for the database.
 }
 
 # Create a Kubernetes secret with database credentials (for mgmt cluster use)
