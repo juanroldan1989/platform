@@ -1,3 +1,13 @@
+variable "civo_token" {
+  description = "Civo API token for authentication"
+  type        = string
+}
+
+variable "region" {
+  description = "CIVO region where to create the database"
+  type        = string
+}
+
 variable "database_name" {
   description = "Name of the database"
   type        = string
@@ -23,11 +33,6 @@ variable "database_username" {
 
 variable "target_namespace" {
   description = "Kubernetes namespace where to create the secret with database credentials"
-  type        = string
-}
-
-variable "region" {
-  description = "CIVO region where to create the database"
   type        = string
 }
 

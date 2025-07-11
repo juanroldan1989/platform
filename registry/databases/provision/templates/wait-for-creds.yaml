@@ -1,0 +1,27 @@
+# Wait job to ensure database credentials are available before pushing to AWS
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.name }}-database-creds-wait
+  namespace: {{ .Values.database.target_namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "22"
+spec:
+  template:
+    spec:
+      serviceAccountName: argocd-server
+      containers:
+      - name: wait
+        image: bitnami/kubectl:1.25.12
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for database credentials secret to be available..."
+          while ! kubectl get secret blog-db-managed-creds -n {{ .Values.database.target_namespace }}; do
+            echo "Waiting for database credentials secret..."
+            sleep 5
+          done
+          echo "Database credentials secret is ready!"
+      restartPolicy: Never
+  backoffLimit: 1

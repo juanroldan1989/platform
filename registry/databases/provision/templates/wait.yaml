@@ -1,3 +1,4 @@
+# Wait job to ensure database infrastructure is provisioned before proceeding with the next steps
 apiVersion: batch/v1
 kind: Job
 metadata:

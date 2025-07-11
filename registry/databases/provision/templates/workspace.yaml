@@ -1,3 +1,5 @@
+# Workspace for Database Infrastructure
+# This workspace is used to provision a Civo database using Terraform.
 apiVersion: tf.upbound.io/v1beta1
 kind: Workspace
 metadata:
@@ -22,6 +24,6 @@ spec:
     - key: region
       value: "{{ .Values.region }}"
     - key: nodes
-      value: "{{ .Values.database.nodes | quote }}"
+      value: "{{ .Values.database.nodes }}"
     - key: target_namespace
       value: "{{ .Values.database.target_namespace }}"
