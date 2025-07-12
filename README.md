@@ -281,6 +281,12 @@ Management Cluster                 Workload Clusters
 
 Detailed documentation: [data.md](data.md)
 
+## (TODO) Deploy applications that rely on each other
+
+- Deploy a main "Dashboard" application that relies on secondary "Weather", "Temperature" and "Traffic" applications.
+- Each of these "secondary" applications can be deployed on ANY "workload" clusters.
+- Provide mechanism for "main" and "secondary" applications to connect with each other cross clusters.
+
 ## (TODO) Clusters hardening
 
 Harden via Kubernetes Benchmarks
