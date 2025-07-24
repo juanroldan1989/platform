@@ -129,209 +129,17 @@ This architecture demonstrates the complete GitOps-based multi-cluster platform 
 - **Shared Resources**: Managed databases and load balancers
 - **Secure Communication**: ESO-based secret distribution
 
-## Applications with External Access
-
-### How do we install, validate and define Ingress resources GitOps-style?
-
-* Ingress resources are declared within each cluster's registry folder: `registry/clusters/{{cluster}}/ingress-nginx`
-* NGINX Ingress Controller is installed via ArgoCD into each workload cluster.
-* Ingress is automatically routed via `LoadBalancer` and DNS Manager.
-
-### How is cert-manager handled for each app?
-
-* A `ClusterIssuer` is defined using `Let’s Encrypt` with `DNS-01` challenge via `Cloudflare`.
-* `cert-manager` auto-issues certificates for any ingress using the shared wildcard TLS secret.
-* Secrets are managed with **External Secrets Operator** and `GitOps`.
-
-### How DNS records are managed?
-
-* DNS records are stored within `Cloudflare`.
-
-* `external-dns` allows us to:
-
-- synchronize **exposed Kubernetes Services and Ingresses** with **DNS providers.**
-- monitor Ingresses and creates `A/TXT` records in `Cloudflare`.
-
-* It authenticates using a shared `Cloudflare API token`, managed with `ESO` and `GitOps`.
-* Each cluster (e.g., `london`, `frankfurt`, `newyork`) can expose a unique subdomain securely.
-* For example, `app.london.automatalife.com` is a real endpoint exposed securely via HTTPS.
-
-### Quick Local Testing Without DNS Propagation
-
-To test while waiting for DNS propagation:
-
-```bash
-sudo nano /etc/hosts
-```
-
-Add:
-
-```text
-74.220.20.97   app.london.automatalife.com
-```
-
-Then open in your browser or use:
-
-```bash
-curl -v https://app.london.automatalife.com
-```
-
-Remember to remove it afterward to prevent stale DNS routing.
-
-## Security & Compliance
-
-### Secret Management
-- **Sealed Secrets**: Encrypted secrets stored in Git repository
-- **External Secrets Operator**: Runtime secret injection from AWS Secrets Manager
-- **RBAC**: Role-based access control for ArgoCD and cluster access
-- **TLS Everywhere**: All traffic encrypted with Let's Encrypt certificates
-
-### Network Security
-- **Private Networking**: Clusters communicate via private networks where possible
-- **Firewall Rules**: Managed database access restricted to cluster networks
-- **DNS Security**: Cloudflare protection against DDoS and DNS attacks
-- **Ingress Security**: NGINX Ingress with rate limiting and security headers
-
-### Credential Rotation
-- **Automated Rotation**: AWS Secrets Manager handles credential lifecycle
-- **GitOps Sync**: Changes propagated automatically to all clusters
-- **Audit Trail**: All changes tracked through Git history and ArgoCD events
-
-## Failover & High Availability
-
-### Application Failover
-- **Stateless Applications**: Automatic failover between regions (e.g., Hello World app)
-- **Stateful Applications**: Database-backed apps with shared data layer (e.g., Blog app)
-
-### Infrastructure Failover
-- **Multi-Region Deployment**: Applications deployed across multiple CIVO regions
-- **Load Balancer Failover**: Cloudflare health checks and automatic traffic routing
-- **Database High Availability**: CIVO managed database with built-in failover
-
-### Detailed Scenarios
-- `Hello World` app (stateless): All details [here](/failover-hello-world.md)
-- `Blog` app (stateful): All details [here](/failover-blog.md)
-
-## Monitoring & Observability
-
-### GitOps Monitoring
-- **ArgoCD Dashboard**: Real-time view of all applications and their sync status
-- **Application Health**: Automated health checks for all deployed applications
-- **Sync Status**: Visual indicators for drift detection and remediation
-
-### Infrastructure Monitoring
-- **Cluster Health**: Kubernetes cluster metrics and node status
-- **Resource Usage**: CPU, memory, and storage utilization across clusters
-- **Network Monitoring**: Service mesh observability and traffic patterns
-
-### Application Monitoring
-- **Ingress Metrics**: Request rates, response times, and error rates
-- **Database Performance**: Connection pooling and query performance
-- **Secret Rotation**: Automated monitoring of credential lifecycle
-
-### Planned Enhancements
-- **OpenTelemetry**: Distributed tracing and metrics collection
-- **Prometheus**: Cluster and application metrics
-- **Grafana**: Custom dashboards for platform engineers and developers
-- **Alerting**: Proactive notification system for critical issues
-
-## Storage & Database Management
-
-✅ **COMPLETED**: Multi-cluster database provisioning and management system
-
-### Current Implementation
-
-- **CIVO Managed Database**: Shared MySQL database provisioned via Terraform modules
-- **GitOps-Based Provisioning**: Database infrastructure managed through ArgoCD ApplicationSets
-- **Multi-Cluster Secret Distribution**: AWS Secrets Manager + External Secrets Operator (ESO) for secure credential sync
-- **Cross-Cluster Data Consistency**: All clusters connect to the same managed database instance
-
-### Architecture
-
-```
-Management Cluster                 Workload Clusters
-┌─────────────────┐              ┌─────────────────--┐
-│ 1. Terraform    │              │ 4. ExternalSecret │
-│    CIVO DB      │              │    (Pull creds)   │
-│                 │              │                   │
-│ 2. K8s Secret   │              │ 5. App connects   │
-│    (DB creds)   │              │    to shared DB   │
-│                 │              │                   │
-│ 3. PushSecret   │              │                   │
-│    (Push to AWS)│              │                   │
-└─────────────────┘              └────────────────--─┘
-         │                                │
-         └────── AWS Secrets Manager ─────┘
-```
-
-### Features
-
-- **Automated Database Provisioning**: Terraform modules for CIVO managed databases
-- **Secure Credential Management**: ESO PushSecret/ExternalSecret pattern
-- **Multi-Cluster Scalability**: New clusters automatically receive database access
-- **High Availability**: Built-in failover and backup via CIVO managed service
-- **GitOps Compliance**: Entire workflow managed through Git and ArgoCD
-
-### Database Evolution Phases
-
-1. **Phase 1**: Single cluster with PVC-backed MySQL (basic setup)
-2. **Phase 2**: Multiple clusters with isolated databases per cluster
-3. **Phase 3**: ✅ **CURRENT** - Multiple clusters sharing one managed database
-4. **Phase 4**: Multi-cloud managed database with global read replicas
-
-Detailed documentation: [data.md](data.md)
-
-## (TODO) Deploy applications that rely on each other
-
-- Deploy a main "Dashboard" application that relies on secondary "Weather", "Temperature" and "Traffic" applications.
-- Each of these "secondary" applications can be deployed on ANY "workload" clusters.
-- Provide mechanism for "main" and "secondary" applications to connect with each other cross clusters.
-
-## (TODO) Clusters hardening
-
-Harden via Kubernetes Benchmarks
-
-Use kube-bench to evaluate your cluster against the CIS Kubernetes Benchmark:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml
-```
-
-## (TODO) Costs
-
-https://github.com/kubecost
-
-## References
-
-### Multi-cluster
-
-- https://www.youtube.com/watch?v=4p2YAp5tRM4 (Demo)
-- https://github.com/konstructio/navigate/tree/main/2024-austin/registry (Demo source code)
-- https://www.getambassador.io/blog/mastering-kubernetes-multi-cluster-availability-scalability#multi-cluster-application-architecture
-- https://www.apptio.com/topics/kubernetes/multi-cloud/multi-cluster/
-- https://www.tigera.io/learn/guides/kubernetes-networking/kubernetes-multi-cluster/
-- https://multicluster.sigs.k8s.io/
-
-### Products
-
-- https://github.com/kubefirst/
-- https://linkerd.io/
-
-## Architecture Overview
-
 ### Core Components
 
-| Component | Purpose | Implementation |
-|-----------|---------|----------------|
-| **ArgoCD** | GitOps control plane | Manages all cluster provisioning and app deployments |
-| **Sealed Secrets** | Secret management | Encrypts secrets for Git storage |
-| **External Secrets Operator** | Cross-cluster secrets | Syncs secrets from AWS Secrets Manager |
-| **Cert-Manager** | TLS certificate management | Let's Encrypt with DNS-01 challenge |
-| **External-DNS** | DNS automation | Cloudflare integration for automatic DNS records |
-| **NGINX Ingress** | Traffic routing | Load balancing and SSL termination |
-| **Crossplane** | Infrastructure as Code | Terraform provider for cloud resources |
-
-### Multi-Cloud Support
+| Component                     | Purpose                        | Implementation                                         |
+|-------------------------------|--------------------------------|--------------------------------------------------------|
+| **ArgoCD**                    | GitOps control plane           | Manages all cluster provisioning and app deployments   |
+| **Sealed Secrets**            | Secret management              | Encrypts secrets for Git storage                       |
+| **External Secrets Operator** | Cross-cluster secrets          | Syncs secrets from AWS Secrets Manager                 |
+| **Cert-Manager**              | TLS certificate management     | Let's Encrypt with DNS-01 challenge                    |
+| **External-DNS**              | DNS automation                 | Cloudflare integration for automatic DNS records       |
+| **NGINX Ingress**             | Traffic routing                | Load balancing and SSL termination                     |
+| **Crossplane**                | Infrastructure as Code         | Terraform provider for cloud resources                 |
 
 - **Primary Provider**: CIVO (Kubernetes clusters and managed databases)
 - **Secondary Provider**: Vultr (additional regions and failover)
@@ -356,7 +164,7 @@ https://github.com/kubecost
 
 ### Prerequisites
 
-- **Cloud Accounts**: CIVO (primary), AWS (secrets), Cloudflare (DNS)
+- **Cloud Accounts**: CIVO (primary), Vultr (secondary), AWS (secrets), Cloudflare (DNS)
 - **Tools**: kubectl, helm, argocd CLI, kubeseal, terraform
 - **Credentials**: API tokens for all cloud providers
 
@@ -453,3 +261,173 @@ platform/
 - **Consistent Environments**: Identical deployment patterns across all clusters
 - **Fast Feedback**: Rapid deployment and testing cycles
 - **Observability**: Built-in monitoring and debugging tools
+
+## Security & Compliance
+
+### Secret Management
+- **Sealed Secrets**: Encrypted secrets stored in Git repository
+- **External Secrets Operator**: Runtime secret injection from AWS Secrets Manager
+- **RBAC**: Role-based access control for ArgoCD and cluster access
+- **TLS Everywhere**: All traffic encrypted with Let's Encrypt certificates
+
+### Network Security
+- **Private Networking**: Clusters communicate via private networks where possible
+- **Firewall Rules**: Managed database access restricted to cluster networks
+- **DNS Security**: Cloudflare protection against DDoS and DNS attacks
+- **Ingress Security**: NGINX Ingress with rate limiting and security headers
+
+### Credential Rotation
+- **Automated Rotation**: AWS Secrets Manager handles credential lifecycle
+- **GitOps Sync**: Changes propagated automatically to all clusters
+- **Audit Trail**: All changes tracked through Git history and ArgoCD events
+
+## Failover & High Availability
+
+### Application Failover
+- **Stateless Applications**: Automatic failover between regions (e.g., Hello World app)
+- **Stateful Applications**: Database-backed apps with shared data layer (e.g., Blog app)
+
+### Infrastructure Failover
+- **Multi-Region Deployment**: Applications deployed across multiple CIVO regions
+- **Load Balancer Failover**: Cloudflare health checks and automatic traffic routing
+- **Database High Availability**: CIVO managed database with built-in failover
+
+### Detailed Scenarios
+- `Hello World` app (stateless): All details [here](/failover-hello-world.md)
+- `Blog` app (stateful): All details [here](/failover-blog.md)
+
+## Monitoring & Observability
+
+### GitOps Monitoring
+- **ArgoCD Dashboard**: Real-time view of all applications and their sync status
+- **Application Health**: Automated health checks for all deployed applications
+- **Sync Status**: Visual indicators for drift detection and remediation
+
+### Infrastructure Monitoring
+- **Cluster Health**: Kubernetes cluster metrics and node status
+- **Resource Usage**: CPU, memory, and storage utilization across clusters
+- **Network Monitoring**: Service mesh observability and traffic patterns
+
+### Application Monitoring
+- **Ingress Metrics**: Request rates, response times, and error rates
+- **Database Performance**: Connection pooling and query performance
+- **Secret Rotation**: Automated monitoring of credential lifecycle
+
+### Planned Enhancements
+- **OpenTelemetry**: Distributed tracing and metrics collection
+- **Prometheus**: Cluster and application metrics
+- **Grafana**: Custom dashboards for platform engineers and developers
+- **Alerting**: Proactive notification system for critical issues
+
+## Storage & Database Management
+
+✅ **COMPLETED**: Multi-cluster database provisioning and management system
+
+### Current Implementation
+
+- **CIVO Managed Database**: Shared MySQL database provisioned via Terraform modules
+- **GitOps-Based Provisioning**: Database infrastructure managed through ArgoCD ApplicationSets
+- **Multi-Cluster Secret Distribution**: AWS Secrets Manager + External Secrets Operator (ESO) for secure credential sync
+- **Cross-Cluster Data Consistency**: All clusters connect to the same managed database instance
+
+### Features
+
+- **Automated Database Provisioning**: Terraform modules for CIVO managed databases
+- **Secure Credential Management**: ESO PushSecret/ExternalSecret pattern
+- **Multi-Cluster Scalability**: New clusters automatically receive database access
+- **High Availability**: Built-in failover and backup via CIVO managed service
+- **GitOps Compliance**: Entire workflow managed through Git and ArgoCD
+
+### Database Evolution Phases
+
+1. **Phase 1**: Single cluster with PVC-backed MySQL (basic setup)
+2. **Phase 2**: Multiple clusters with isolated databases per cluster
+3. **Phase 3**: ✅ **CURRENT** - Multiple clusters sharing one managed database
+4. **Phase 4**: Multi-cloud managed database with global read replicas
+
+Detailed documentation: [data.md](data.md)
+
+## (TODO) Deploy applications that rely on each other
+
+- Deploy a main "Dashboard" application that relies on secondary "Weather", "Temperature" and "Traffic" applications.
+- Each of these "secondary" applications can be deployed on ANY "workload" clusters.
+- Provide mechanism for "main" and "secondary" applications to connect with each other cross clusters.
+
+## (TODO) Clusters hardening
+
+Harden via Kubernetes Benchmarks
+
+Use kube-bench to evaluate your cluster against the CIS Kubernetes Benchmark:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml
+```
+
+## (TODO) Costs
+
+https://github.com/kubecost
+
+## Applications with External Access
+
+### How do we install, validate and define Ingress resources GitOps-style?
+
+* Ingress resources are declared within each cluster's registry folder: `registry/clusters/{{cluster}}/ingress-nginx`
+* NGINX Ingress Controller is installed via ArgoCD into each workload cluster.
+* Ingress is automatically routed via `LoadBalancer` and DNS Manager.
+
+### How is cert-manager handled for each app?
+
+* A `ClusterIssuer` is defined using `Let’s Encrypt` with `DNS-01` challenge via `Cloudflare`.
+* `cert-manager` auto-issues certificates for any ingress using the shared wildcard TLS secret.
+* Secrets are managed with **External Secrets Operator** and `GitOps`.
+
+### How DNS records are managed?
+
+* DNS records are stored within `Cloudflare`.
+
+* `external-dns` allows us to:
+
+- synchronize **exposed Kubernetes Services and Ingresses** with **DNS providers.**
+- monitor Ingresses and creates `A/TXT` records in `Cloudflare`.
+
+* It authenticates using a shared `Cloudflare API token`, managed with `ESO` and `GitOps`.
+* Each cluster (e.g., `london`, `frankfurt`, `newyork`) can expose a unique subdomain securely.
+* For example, `app.london.automatalife.com` is a real endpoint exposed securely via HTTPS.
+
+### Quick Local Testing Without DNS Propagation
+
+To test while waiting for DNS propagation:
+
+```bash
+sudo nano /etc/hosts
+```
+
+Add:
+
+```text
+74.220.20.97   app.london.automatalife.com
+```
+
+Then open in your browser or use:
+
+```bash
+curl -v https://app.london.automatalife.com
+```
+
+Remember to remove it afterward to prevent stale DNS routing.
+
+## References
+
+### Multi-cluster
+
+- https://www.youtube.com/watch?v=4p2YAp5tRM4 (Demo)
+- https://github.com/konstructio/navigate/tree/main/2024-austin/registry (Demo source code)
+- https://www.getambassador.io/blog/mastering-kubernetes-multi-cluster-availability-scalability#multi-cluster-application-architecture
+- https://www.apptio.com/topics/kubernetes/multi-cloud/multi-cluster/
+- https://www.tigera.io/learn/guides/kubernetes-networking/kubernetes-multi-cluster/
+- https://multicluster.sigs.k8s.io/
+
+### Products
+
+- https://github.com/kubefirst/
+- https://linkerd.io/
