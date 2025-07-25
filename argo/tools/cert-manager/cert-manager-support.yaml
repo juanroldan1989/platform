@@ -3,6 +3,13 @@ kind: ApplicationSet
 metadata:
   name: cert-manager-support
   namespace: argocd
+  labels:
+    app.kubernetes.io/name: cert-manager-support
+    app.kubernetes.io/component: security
+    app.kubernetes.io/part-of: platform-infrastructure
+    platform.dev/layer: infrastructure
+    platform.dev/category: security
+    platform.dev/tool: cert-manager
   annotations:
     argocd.argoproj.io/sync-wave: "60"
 spec:
@@ -14,10 +21,17 @@ spec:
   template:
     metadata:
       name: cert-manager-support-{{name}}
+      labels:
+        app.kubernetes.io/name: cert-manager-support
+        app.kubernetes.io/component: security
+        app.kubernetes.io/part-of: platform-infrastructure
+        platform.dev/layer: infrastructure
+        platform.dev/category: security
+        platform.dev/cluster: "{{name}}"
       annotations:
         argocd.argoproj.io/description: "Additional resources for Cert Manager in {{name}} cluster"
     spec:
-      project: default
+      project: infrastructure
       sources:
         - repoURL: https://github.com/juanroldan1989/platform.git
           targetRevision: main

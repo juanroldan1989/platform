@@ -3,6 +3,14 @@ kind: ApplicationSet
 metadata:
   name: provision-load-balancers
   namespace: argocd
+  labels:
+    app.kubernetes.io/name: load-balancer-provisioner
+    app.kubernetes.io/component: provisioning
+    app.kubernetes.io/part-of: platform-infrastructure
+    platform.dev/layer: infrastructure
+    platform.dev/category: networking
+    platform.dev/provider: cloudflare
+    platform.dev/tool: crossplane
   annotations:
     argocd.argoproj.io/sync-wave: "10"
 spec:
@@ -15,8 +23,17 @@ spec:
   template:
     metadata:
       name: provision-load-balancer-{{path.basename}}
+      labels:
+        app.kubernetes.io/name: load-balancer
+        app.kubernetes.io/component: provisioning
+        app.kubernetes.io/part-of: platform-infrastructure
+        platform.dev/layer: infrastructure
+        platform.dev/category: networking
+        platform.dev/app: "{{path.basename}}"
+      annotations:
+        argocd.argoproj.io/description: "Provision load balancer for {{path.basename}} via Cloudflare"
     spec:
-      project: default
+      project: load-balancers
       sources:
         - repoURL: https://github.com/juanroldan1989/platform.git
           targetRevision: main

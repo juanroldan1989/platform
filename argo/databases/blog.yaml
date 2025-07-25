@@ -16,11 +16,20 @@ spec:
           - path: registry/databases/overlays/*
   template:
     metadata:
-      name: database-for-{{path.basename}}
+      name: db-{{path.basename}}-civo-managed
+      labels:
+        app.kubernetes.io/name: civo-managed-database
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: platform
+        platform.layer: database
+        platform.category: managed-database
+        platform.provider: civo
+        platform.database: '{{path.basename}}'
       annotations:
-        argocd.argoproj.io/description: "Provision Managed DB for {{path.basename}}"
+        argocd.argoproj.io/description: "CIVO Managed Database for {{path.basename}} application"
+        argocd.argoproj.io/sync-wave: "20"
     spec:
-      project: default
+      project: databases
       sources:
         - repoURL: https://github.com/juanroldan1989/platform.git
           targetRevision: main

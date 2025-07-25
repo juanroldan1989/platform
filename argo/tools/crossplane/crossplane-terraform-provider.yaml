@@ -3,10 +3,19 @@ kind: Application
 metadata:
   name: crossplane-terraform-provider
   namespace: argocd
+  labels:
+    app.kubernetes.io/name: crossplane-terraform-provider
+    app.kubernetes.io/component: provisioning
+    app.kubernetes.io/part-of: platform-infrastructure
+    platform.dev/layer: infrastructure
+    platform.dev/category: provisioning
+    platform.dev/tool: crossplane
+    platform.dev/provider: terraform
+    platform.dev/cluster: mgmt
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
-  project: default
+  project: infrastructure
   destination:
     name: in-cluster
     namespace: crossplane-system

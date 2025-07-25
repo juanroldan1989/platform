@@ -3,6 +3,13 @@ kind: ApplicationSet
 metadata:
   name: blog
   namespace: argocd
+  labels:
+    app.kubernetes.io/name: blog
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: platform-apps
+    platform.dev/layer: application
+    platform.dev/category: user-app
+    platform.dev/type: web-app
   annotations:
     argocd.argoproj.io/sync-wave: "70"
 spec:
@@ -15,10 +22,17 @@ spec:
   template:
     metadata:
       name: blog-in-{{name}}
+      labels:
+        app.kubernetes.io/name: blog
+        app.kubernetes.io/component: application
+        app.kubernetes.io/part-of: platform-apps
+        platform.dev/layer: application
+        platform.dev/category: user-app
+        platform.dev/cluster: "{{name}}"
       annotations:
         argocd.argoproj.io/description: "Deploy Blog (Ghost) App in {{name}} cluster"
     spec:
-      project: default
+      project: applications
       sources:
         - repoURL: https://github.com/juanroldan1989/platform.git
           targetRevision: main

@@ -3,6 +3,15 @@ kind: ApplicationSet
 metadata:
   name: cert-manager
   namespace: argocd
+  labels:
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/component: security
+    app.kubernetes.io/part-of: platform-infrastructure
+    platform.dev/layer: infrastructure
+    platform.dev/category: security
+    platform.dev/tool: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
 spec:
   generators:
     - clusters:
@@ -12,10 +21,17 @@ spec:
   template:
     metadata:
       name: cert-manager-{{name}}
+      labels:
+        app.kubernetes.io/name: cert-manager
+        app.kubernetes.io/component: security
+        app.kubernetes.io/part-of: platform-infrastructure
+        platform.dev/layer: infrastructure
+        platform.dev/category: security
+        platform.dev/cluster: "{{name}}"
       annotations:
         argocd.argoproj.io/description: "Deploys Cert Manager in {{name}} cluster for managing certificates"
     spec:
-      project: default
+      project: infrastructure
       source:
         repoURL: https://charts.jetstack.io
         chart: cert-manager

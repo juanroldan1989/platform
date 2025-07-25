@@ -3,6 +3,13 @@ kind: ApplicationSet
 metadata:
   name: ingress-nginx
   namespace: argocd
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/component: networking
+    app.kubernetes.io/part-of: platform-infrastructure
+    platform.dev/layer: infrastructure
+    platform.dev/category: networking
+    platform.dev/tool: ingress-nginx
   annotations:
     argocd.argoproj.io/sync-wave: "50"
 spec:
@@ -18,10 +25,17 @@ spec:
   template:
     metadata:
       name: ingress-nginx-{{name}}
+      labels:
+        app.kubernetes.io/name: ingress-nginx
+        app.kubernetes.io/component: networking
+        app.kubernetes.io/part-of: platform-infrastructure
+        platform.dev/layer: infrastructure
+        platform.dev/category: networking
+        platform.dev/cluster: "{{name}}"
       annotations:
         argocd.argoproj.io/description: "Deploy & Configuration of INGRESS NGINX in {{name}} cluster for external traffic routing"
     spec:
-      project: default
+      project: infrastructure
       sources:
         - repoURL: https://kubernetes.github.io/ingress-nginx
           chart: ingress-nginx

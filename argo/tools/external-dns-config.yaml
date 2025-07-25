@@ -3,6 +3,14 @@ kind: ApplicationSet
 metadata:
   name: external-dns
   namespace: argocd
+  labels:
+    app.kubernetes.io/name: external-dns
+    app.kubernetes.io/component: dns
+    app.kubernetes.io/part-of: platform-infrastructure
+    platform.dev/layer: infrastructure
+    platform.dev/category: networking
+    platform.dev/provider: cloudflare
+    platform.dev/tool: external-dns
   annotations:
     argocd.argoproj.io/sync-wave: "50"
 spec:
@@ -18,10 +26,17 @@ spec:
   template:
     metadata:
       name: external-dns-{{name}}
+      labels:
+        app.kubernetes.io/name: external-dns
+        app.kubernetes.io/component: dns
+        app.kubernetes.io/part-of: platform-infrastructure
+        platform.dev/layer: infrastructure
+        platform.dev/category: networking
+        platform.dev/cluster: "{{name}}"
       annotations:
         argocd.argoproj.io/description: "Deploy & Configuration of External DNS in {{name}} cluster for managing DNS records"
     spec:
-      project: default
+      project: infrastructure
       sources:
         - repoURL: https://kubernetes-sigs.github.io/external-dns/
           chart: external-dns

@@ -17,11 +17,19 @@ spec:
             in-cluster: "true"
   template:
     metadata:
-      name: external-secrets-operator-{{name}}
+      name: infra-{{name}}-eso
+      labels:
+        app.kubernetes.io/name: external-secrets-operator
+        app.kubernetes.io/component: infrastructure
+        app.kubernetes.io/part-of: platform
+        platform.layer: infrastructure
+        platform.category: security
+        platform.cluster: '{{name}}'
+        platform.tool: eso
       annotations:
         argocd.argoproj.io/description: "Deploy & Configuration of ESO (External Secrets Operator) in {{name}} cluster for managing Secrets"
     spec:
-      project: default
+      project: infrastructure
       sources:
         - repoURL: https://charts.external-secrets.io
           chart: external-secrets

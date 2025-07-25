@@ -1,0 +1,166 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: infrastructure
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  description: Core infrastructure components (ESO, Ingress, DNS, Cert-Manager)
+  sourceRepos:
+  - 'https://github.com/juanroldan1989/platform'
+  - 'https://charts.external-secrets.io'
+  - 'https://kubernetes.github.io/ingress-nginx'
+  - 'https://charts.jetstack.io'
+  destinations:
+  - namespace: '*'
+    server: '*'
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  roles:
+  - name: infrastructure-admin
+    description: Full access to infrastructure applications
+    policies:
+    - p, proj:infrastructure:infrastructure-admin, applications, *, infrastructure/*, allow
+    groups:
+    - platform-team
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: databases
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  description: Database provisioning and management (CIVO managed databases, secret distribution)
+  sourceRepos:
+  - 'https://github.com/juanroldan1989/platform'
+  destinations:
+  - namespace: 'blog-db'
+    server: '*'
+  - namespace: 'crossplane-system'
+    server: 'https://kubernetes.default.svc'
+  clusterResourceWhitelist:
+  - group: 'tf.upbound.io'
+    kind: '*'
+  - group: 'external-secrets.io'
+    kind: 'ClusterSecretStore'
+  - group: 'external-secrets.io'
+    kind: 'ClusterPushSecret'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  roles:
+  - name: database-admin
+    description: Full access to database applications
+    policies:
+    - p, proj:databases:database-admin, applications, *, databases/*, allow
+    groups:
+    - platform-team
+    - database-team
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: load-balancers
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  description: Load balancer and traffic management (Cloudflare LB, routing policies)
+  sourceRepos:
+  - 'https://github.com/juanroldan1989/platform'
+  destinations:
+  - namespace: 'load-balancer'
+    server: '*'
+  - namespace: 'crossplane-system'
+    server: 'https://kubernetes.default.svc'
+  clusterResourceWhitelist:
+  - group: 'tf.upbound.io'
+    kind: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  roles:
+  - name: loadbalancer-admin
+    description: Full access to load balancer applications
+    policies:
+    - p, proj:load-balancers:loadbalancer-admin, applications, *, load-balancers/*, allow
+    groups:
+    - platform-team
+    - networking-team
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: applications
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  description: User applications (Blog, Hello World, future applications)
+  sourceRepos:
+  - 'https://github.com/juanroldan1989/platform'
+  - 'https://github.com/juanroldan1989/applications'  # Future applications repo
+  - '*'  # Allow any repo for flexibility
+  destinations:
+  - namespace: '*'
+    server: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  roles:
+  - name: application-developer
+    description: Deploy and manage applications
+    policies:
+    - p, proj:applications:application-developer, applications, *, applications/*, allow
+    - p, proj:applications:application-developer, applications, sync, applications/*, allow
+    groups:
+    - developers
+    - application-team
+  - name: application-admin
+    description: Full access to applications
+    policies:
+    - p, proj:applications:application-admin, applications, *, applications/*, allow
+    groups:
+    - platform-team
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: monitoring
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  description: Monitoring and observability stack (Prometheus, Grafana, Alerting)
+  sourceRepos:
+  - 'https://github.com/juanroldan1989/platform'
+  - 'https://prometheus-community.github.io/helm-charts'
+  - 'https://grafana.github.io/helm-charts'
+  destinations:
+  - namespace: 'monitoring'
+    server: '*'
+  - namespace: 'prometheus'
+    server: '*'
+  - namespace: 'grafana'
+    server: '*'
+  clusterResourceWhitelist:
+  - group: 'monitoring.coreos.com'
+    kind: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  roles:
+  - name: monitoring-admin
+    description: Full access to monitoring applications
+    policies:
+    - p, proj:monitoring:monitoring-admin, applications, *, monitoring/*, allow
+    groups:
+    - platform-team
+    - sre-team
