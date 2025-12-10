@@ -21,7 +21,77 @@ This repository's mission is to **enable a streamlined, scalable and self-servic
 
 3. GitOps principles ensures **transparency**, **traceability** and **automation** across all environments (e.g.: `DEV`, `TEST`, `PROD`) and regions (e.g.: `newyork`, `london`, `barcelona`, `dublin`).
 
-## `platform` repo – setup (local / cloud)
+## Platform Architecture
+
+```bash
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                                GitOps Control Plane                                 │
+│                            ┌─────────────────────────────┐                          │
+│                            │     "Management" Cluster    │                          │
+│                            │          (CIVO)             │                          │
+│                            │                             │                          │
+│                            │  ┌─────────┐ ┌──────────┐   │                          │
+│                            │  │ ArgoCD  │ │Crossplane│   │                          │
+│                            │  └─────────┘ └──────────┘   │                          │
+│                            │                             │                          │
+│                            │  ┌─────────┐ ┌─────────┐    │                          │
+│                            │  │   ESO   │ │Terraform│    │                          │
+│                            │  └─────────┘ └─────────┘    │                          │
+│                            └─────────────────────────────┘                          │
+│                                         │                                           │
+│                                         │ GitOps Sync                               │
+│                                         │                                           │
+│                    ┌────────────────────┼────────────────────┐                      │
+│                    │                    │                    │                      │
+│                    ▼                    ▼                    ▼                      │
+│            ┌─────────────┐      ┌─────────────┐      ┌─────────────┐                │
+│            │  "workload" │      │  "workload" │      │  "workload" │                │
+│            │   Cluster   │      │   Cluster   │      │   Cluster   │                │
+│            │   London    │      │  Frankfurt  │      │   New York  │                │
+│            │   (CIVO)    │      │   (CIVO)    │      │   (CIVO)    │                │
+│            │             │      │             │      │             │                │
+│            │ ┌─────────┐ │      │ ┌─────────┐ │      │ ┌─────────┐ │                │
+│            │ │   App   │ │      │ │   App   │ │      │ │   App   │ │                │
+│            │ │  (Blog) │ │      │ │  (Blog) │ │      │ │  (Blog) │ │                │
+│            │ └─────────┘ │      │ └─────────┘ │      │ └─────────┘ │                │
+│            │             │      │             │      │             │                │
+│            │ ┌─────────┐ │      │ ┌─────────┐ │      │ ┌─────────┐ │                │
+│            │ │   ESO   │ │      │ │   ESO   │ │      │ │   ESO   │ │                │
+│            │ └─────────┘ │      │ └─────────┘ │      │ └─────────┘ │                │
+│            └─────────────┘      └─────────────┘      └─────────────┘                │
+│                    │                   │                    │                       │
+│                    └───────────────────┼────────────────────┘                       │
+│                                        │                                            │
+│                                        ▼                                            │
+│                              ┌─────────────────────┐                                │
+│                              │   Shared Resources  │                                │
+│                              │                     │                                │
+│                              │  ┌─────────────┐    │                                │
+│                              │  │    CIVO     │    │                                │
+│                              │  │   Database  │    │                                │
+│                              │  └─────────────┘    │                                │
+│                              │                     │                                │
+│                              │  ┌─────────────┐    │                                │
+│                              │  │     AWS     │    │                                │
+│                              │  │   Secrets   │    │                                │
+│                              │  │   Manager   │    │                                │
+│                              │  └─────────────┘    │                                │
+│                              │                     │                                │
+│                              │  ┌─────────────┐    │                                │
+│                              │  │ Cloudflare  │    │                                │
+│                              │  │Load Balancer│    │                                │
+│                              │  └─────────────┘    │                                │
+│                              └─────────────────────┘                                │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+This architecture demonstrates the complete GitOps-based multi-cluster platform with:
+- **Centralized Control**: Management cluster orchestrates all operations
+- **Distributed Applications**: Workload clusters across multiple regions
+- **Shared Resources**: Managed databases and load balancers
+- **Secure Communication**: ESO-based secret distribution
+
+## `platform` setup (local / cloud)
 
 Platform engineers can use this repository to:
 
@@ -58,78 +128,12 @@ Platform engineers can use this repository to:
 * A single **ArgoCD ApplicationSet** resource per application keeps apps in sync across clusters and cloud providers.
 * Ingress and `TLS` settings are managed inside each cluster's registry folder: `registry/clusters/{{cluster}}/external-dns`
 
-## Platform Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────────────────┐
-│                                GitOps Control Plane                                 │
-│                            ┌─────────────────────────────┐                          │
-│                            │     Management Cluster      │                          │
-│                            │      (in-cluster)           │                          │
-│                            │                             │                          │
-│                            │  ┌─────────┐ ┌────────-─┐   │                          │
-│                            │  │ ArgoCD  │ │Crossplane│   │                          │
-│                            │  │         │ │          │   │                          │
-│                            │  └─────────┘ └────────-─┘   │                          │
-│                            │                             │                          │
-│                            │  ┌─────────┐ ┌─────────┐    │                          │
-│                            │  │   ESO   │ │Terraform│    │                          │
-│                            │  │         │ │         │    │                          │
-│                            │  └─────────┘ └─────────┘    │                          │
-│                            └─────────────────────────────┘                          │
-│                                         │                                           │
-│                                         │ GitOps Sync                               │
-│                                         │                                           │
-│                    ┌────────────────────┼────────────────────┐                      │
-│                    │                    │                    │                      │
-│                    ▼                    ▼                    ▼                      │
-│            ┌─────────────┐      ┌─────────────┐      ┌─────────────┐                │
-│            │   London    │      │  Frankfurt  │      │  New York   │                │
-│            │   Cluster   │      │   Cluster   │      │   Cluster   │                │
-│            │             │      │             │      │             │                │
-│            │ ┌─────────┐ │      │ ┌─────────┐ │      │ ┌─────────┐ │                │
-│            │ │   App   │ │      │ │   App   │ │      │ │   App   │ │                │
-│            │ │ (Blog)  │ │      │ │ (Blog)  │ │      │ │ (Blog)  │ │                │
-│            │ └─────────┘ │      │ └─────────┘ │      │ └─────────┘ │                │
-│            │             │      │             │      │             │                │
-│            │ ┌─────────┐ │      │ ┌─────────┐ │      │ ┌─────────┐ │                │
-│            │ │   ESO   │ │      │ │   ESO   │ │      │ │   ESO   │ │                │
-│            │ │         │ │      │ │         │ │      │ │         │ │                │
-│            │ └─────────┘ │      │ └─────────┘ │      │ └─────────┘ │                │
-│            └─────────────┘      └─────────────┘      └─────────────┘                │
-│                    │                    │                    │                      │
-│                    └────────────────────┼────────────────────┘                      │
-│                                         │                                           │
-│                                         ▼                                           │
-│                              ┌─────────────────────┐                                │
-│                              │   Shared Resources  │                                │
-│                              │                     │                                │
-│                              │  ┌─────────────┐    │                                │
-│                              │  │    CIVO     │    │                                │
-│                              │  │   Database  │    │                                │
-│                              │  └─────────────┘    │                                │
-│                              │                     │                                │
-│                              │  ┌─────────────┐    │                                │
-│                              │  │     AWS     │    │                                │
-│                              │  │   Secrets   │    │                                │
-│                              │  │   Manager   │    │                                │
-│                              │  └─────────────┘    │                                │
-│                              │                     │                                │
-│                              │  ┌─────────────┐    │                                │
-│                              │  │ Cloudflare  │    │                                │
-│                              │  │Load Balancer│    │                                │
-│                              │  └─────────────┘    │                                │
-│                              └─────────────────────┘                                │
-└─────────────────────────────────────────────────────────────────────────────────────┘
-```
-
-This architecture demonstrates the complete GitOps-based multi-cluster platform with:
-- **Centralized Control**: Management cluster orchestrates all operations
-- **Distributed Applications**: Workload clusters across multiple regions
-- **Shared Resources**: Managed databases and load balancers
-- **Secure Communication**: ESO-based secret distribution
-
 ### Core Components
+
+- **Primary Cloud Provider**: CIVO (Kubernetes clusters and managed databases)
+- **Secondary Cloud Provider**: Vultr (additional regions and failover)
+- **DNS Provider**: Cloudflare (global DNS management and load balancing)
+- **Secrets Provider**: AWS Secrets Manager (cross-cluster credential distribution)
 
 | Component                     | Purpose                        | Implementation                                         |
 |-------------------------------|--------------------------------|--------------------------------------------------------|
@@ -140,11 +144,6 @@ This architecture demonstrates the complete GitOps-based multi-cluster platform 
 | **External-DNS**              | DNS automation                 | Cloudflare integration for automatic DNS records       |
 | **NGINX Ingress**             | Traffic routing                | Load balancing and SSL termination                     |
 | **Crossplane**                | Infrastructure as Code         | Terraform provider for cloud resources                 |
-
-- **Primary Provider**: CIVO (Kubernetes clusters and managed databases)
-- **Secondary Provider**: Vultr (additional regions and failover)
-- **DNS Provider**: Cloudflare (global DNS management and load balancing)
-- **Secrets Provider**: AWS Secrets Manager (cross-cluster credential distribution)
 
 ### Cluster Types
 
@@ -211,7 +210,7 @@ argocd app list
 
 ### Repository Structure
 
-```
+```bash
 platform/
 ├── argo/                 # ArgoCD ApplicationSets
 │   ├── apps/               # Application definitions
@@ -293,8 +292,8 @@ platform/
 - **Database High Availability**: CIVO managed database with built-in failover
 
 ### Detailed Scenarios
-- `Hello World` app (stateless): All details [here](/failover-hello-world.md)
-- `Blog` app (stateful): All details [here](/failover-blog.md)
+- `Hello World` app (stateless): All details [here](zdocs/failover-hello-world.md)
+- `Blog` app (stateful): All details [here](zdocs/failover-blog.md)
 
 ## Monitoring & Observability
 
@@ -345,7 +344,7 @@ platform/
 3. **Phase 3**: ✅ **CURRENT** - Multiple clusters sharing one managed database
 4. **Phase 4**: Multi-cloud managed database with global read replicas
 
-Detailed documentation: [data.md](data.md)
+Detailed documentation: [data.md](zdocs/data.md)
 
 ## (TODO) Deploy applications that rely on each other
 
@@ -426,6 +425,7 @@ Remember to remove it afterward to prevent stale DNS routing.
 - https://www.apptio.com/topics/kubernetes/multi-cloud/multi-cluster/
 - https://www.tigera.io/learn/guides/kubernetes-networking/kubernetes-multi-cluster/
 - https://multicluster.sigs.k8s.io/
+- https://github.com/konstructio/navigate/tree/main
 
 ### Products
 

@@ -76,7 +76,7 @@ These tokens will be used by the `crossplane terraform provider` to allow provis
 2. external-dns to create and adjust DNS records in those accounts.
 3. Run the `./scripts/seal-secret.sh`
 4. Commit changes made to `bootstrap/crossplane/0-crossplane-sealed-secret.yaml`
-5. More info about this in [Secrets README](/secrets.md)
+5. More info about this in [Secrets README](/zdocs/secrets.md)
 
 ### 1.3 Wait for all pods in k3d to be Running / Completed
 

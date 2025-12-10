@@ -82,4 +82,4 @@ spec:
 2. Data is kept in sync **across cloud providers**
 3. Data availability experience is completely transparent for a User accessing their acccount and posts across regions.
 
-- Implementation phases can be found [here](/data.md)
+- Implementation phases can be found [here](/zdocs/data.md)

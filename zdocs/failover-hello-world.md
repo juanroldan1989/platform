@@ -82,4 +82,4 @@ spec:
 
 ## More about Cloudflare GLB
 
-[cloudflare-lb](/cloudflare-lb.md)
+[cloudflare-lb](/zdocs/cloudflare-lb.md)
