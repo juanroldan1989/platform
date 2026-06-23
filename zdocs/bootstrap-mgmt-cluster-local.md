@@ -8,6 +8,8 @@
   - install: `brew install watch`
 - kubectl: interact with kubernetes
   - install: `brew install kubectl`
+- kubeseal: fetch the Sealed Secrets certificate and seal local secrets
+  - install: `brew install kubeseal`
 - civo account
   - set nameserver records at your domain registrar to `ns0.civo.com` and `ns1.civo.com`
   - add your domain in your [civo dns](https://dashboard.civo.com/dns)
@@ -40,7 +42,32 @@ k3d cluster create mgmt-cluster \
 
 2. Extract `public-key` associated with `Sealed Secrets`:
 
-3. Store this `public-key` within `./sealed-secrets/sealed-secrets-key.yaml`
+Run this after the `sealed-secrets-in-cluster` ArgoCD app has installed the controller in `kube-system`.
+
+If the controller is not present yet, continue through the ArgoCD setup and cluster labeling steps below, wait for `sealed-secrets-in-cluster` to sync, then come back here.
+
+```sh
+mkdir -p .sealed-secrets/mgmt
+
+kubectl -n kube-system rollout status deployment/sealed-secrets-controller --timeout=120s
+
+kubeseal --fetch-cert \
+  --controller-name sealed-secrets-controller \
+  --controller-namespace kube-system \
+  > .sealed-secrets/mgmt/sealed-secrets-public.pem
+
+KEY_NAME=$(kubectl -n kube-system get secret \
+  -l sealedsecrets.bitnami.com/sealed-secrets-key=active \
+  -o jsonpath='{.items[0].metadata.name}')
+
+kubectl -n kube-system get secret "${KEY_NAME}" -o yaml \
+  > .sealed-secrets/mgmt/sealed-secrets-key.yaml
+```
+
+This produces:
+
+- `.sealed-secrets/mgmt/sealed-secrets-public.pem`: public certificate used by `scripts/seal-mgmt-secrets.sh`
+- `.sealed-secrets/mgmt/sealed-secrets-key.yaml`: controller key secret to re-use when recreating the management cluster
 
 #### Creating `mgmt-cluster` for future times:
 
@@ -74,7 +101,7 @@ These tokens will be used by the `crossplane terraform provider` to allow provis
 
 1. `CIVO` and `Vultr` cloud infrastructure
 2. external-dns to create and adjust DNS records in those accounts.
-3. Run the `./scripts/seal-secret.sh`
+3. Run the `./scripts/seal-mgmt-secrets.sh`
 4. Commit changes made to `bootstrap/crossplane/0-crossplane-sealed-secret.yaml`
 5. More info about this in [Secrets README](/zdocs/secrets.md)
 
@@ -110,6 +137,16 @@ kubectl -n argocd get secret/argocd-initial-admin-secret -ojsonpath='{.data.pass
 
 - password: (paste from your clipboard)
 
+### 1.8 label mgmt-cluster properly
+
+Access `mgmt-cluster` config and add label:
+
+```
+in-cluster: "true"
+```
+
+This way, ArgoCD will provision all `ApplicationSet` apps meant to be provisioned in `mgmt-cluster`, e.g.: ingress-nginx, dns-config, sealed-secrets.
+
 ## Step 2: Provisioning Cluster via GitOps in Civo/Vultr
 
 - After `ArgoCD` is running, the following steps are handled declaratively via GitOps:
@@ -140,4 +177,5 @@ kubectl -n argocd get secret/argocd-initial-admin-secret -ojsonpath='{.data.pass
 
 ```bash
 k3d node delete k3d-mgmt-cluster-agent-0 k3d-mgmt-cluster-server-0 k3d-mgmt-cluster-serverlb k3d-mgmt-cluster-tools
+k3d cluster delete mgmt-cluster
 ```

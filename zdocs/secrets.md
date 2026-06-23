@@ -26,7 +26,7 @@ bootstrap/crossplane/0-crossplane-sealed-secrets.yaml
 
 * **Applied via**: ArgoCD as part of the `crossplane-terraform-provider` ArgoCD app.
 
-## Script: `seal-secrets.sh`
+## Script: `seal-mgmt-secrets.sh`
 
 - Automates secure SealedSecret generation using environment tokens.
 - Script Actions:
@@ -100,7 +100,7 @@ If variables like `VULTR_TOKEN` or `TF_VAR_vultr_token` are not present:
 
 ### Fix Steps
 
-1. Re-run `seal-secret.sh` with updated `VULTR_TOKEN` environment variable/s.
+1. Re-run `seal-mgmt-secrets.sh` with updated `VULTR_TOKEN` environment variable/s.
 2. Re-commit and sync via ArgoCD.
 3. Delete the provider pod to force it to reload the updated secret:
 
