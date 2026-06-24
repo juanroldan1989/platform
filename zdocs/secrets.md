@@ -73,6 +73,81 @@ To avoid re-sealing secrets every time a new cluster is created:
 
 ## Troubleshooting
 
+### Problem: SealedSecret cannot be decrypted
+
+ArgoCD may show the `crossplane-secrets` resource as degraded with an error like:
+
+```sh
+Failed to unseal: no key could decrypt secret
+```
+
+This means the `SealedSecret` was encrypted with a public certificate that does not match the private key currently loaded by the Sealed Secrets controller.
+
+Check which keys are present:
+
+```sh
+kubectl -n kube-system get secret \
+  -l sealedsecrets.bitnami.com/sealed-secrets-key \
+  -o custom-columns=NAME:.metadata.name,CREATED:.metadata.creationTimestamp
+```
+
+Check the fingerprint of the local public certificate used by `seal-mgmt-secrets.sh`:
+
+```sh
+openssl x509 \
+  -in .sealed-secrets/mgmt/sealed-secrets-public.pem \
+  -noout -fingerprint -sha256 -dates
+```
+
+Check the fingerprint of the active cluster key:
+
+```sh
+KEY_NAME=$(kubectl -n kube-system get secret \
+  -l sealedsecrets.bitnami.com/sealed-secrets-key \
+  -o jsonpath='{.items[0].metadata.name}')
+
+kubectl -n kube-system get secret "${KEY_NAME}" \
+  -o jsonpath='{.data.tls\.crt}' | base64 -d | \
+  openssl x509 -noout -fingerprint -sha256 -dates
+```
+
+### Fix Steps
+
+1. Apply the saved management Sealed Secrets key:
+
+```sh
+kubectl apply -f .sealed-secrets/mgmt/sealed-secrets-key.yaml
+```
+
+2. Restart the controller so it reloads the saved key:
+
+```sh
+kubectl -n kube-system rollout restart deployment/sealed-secrets-controller
+kubectl -n kube-system rollout status deployment/sealed-secrets-controller
+```
+
+3. Remove any generated key that does not match `.sealed-secrets/mgmt/sealed-secrets-public.pem`.
+
+For example, if the generated key is `sealed-secrets-keyk2csd` and the saved key is `sealed-secrets-keyp26xs`:
+
+```sh
+kubectl -n kube-system delete secret sealed-secrets-keyk2csd
+```
+
+4. Re-apply or resync the `crossplane-secrets` SealedSecret:
+
+```sh
+kubectl apply -f bootstrap/crossplane/0-crossplane-sealed-secrets.yaml
+```
+
+Or sync the `crossplane-terraform-provider` Application in ArgoCD.
+
+5. Confirm the decrypted Secret exists:
+
+```sh
+kubectl -n crossplane-system get secret crossplane-secrets
+```
+
 ### Problem: Environment variables not visible inside Terraform Provider Pod
 
 - Check if the secret was properly decrypted:
@@ -100,7 +175,7 @@ If variables like `VULTR_TOKEN` or `TF_VAR_vultr_token` are not present:
 
 ### Fix Steps
 
-1. Re-run `seal-mgmt-secrets.sh` with updated `VULTR_TOKEN` environment variable/s.
+1. Re-run `seal-mgmt-secrets.sh` with updated environment variables.
 2. Re-commit and sync via ArgoCD.
 3. Delete the provider pod to force it to reload the updated secret:
 

@@ -37,7 +37,7 @@ cd platform
 k3d cluster create mgmt-cluster \
   --agents "2" \
   --agents-memory "4096m" \
-  --volume $PWD/bootstrap/mgmt-cluster.yaml:/var/lib/rancher/k3s/server/bootstrap/mgmt-cluster.yaml
+  --volume $PWD/bootstrap/mgmt-cluster.yaml:/var/lib/rancher/k3s/server/manifests/mgmt-cluster.yaml@server:0
 ```
 
 2. Extract `public-key` associated with `Sealed Secrets`:
@@ -71,15 +71,19 @@ This produces:
 
 #### Creating `mgmt-cluster` for future times:
 
-1. Create cluster (include `public key` for `Sealed Secrets`):
+1. Create cluster (include the existing `Sealed Secrets` key):
 
 ```sh
 k3d cluster create mgmt-cluster \
   --agents "2" \
   --agents-memory "4096m" \
-  --volume $PWD/bootstrap/mgmt-cluster.yaml:/var/lib/rancher/k3s/server/bootstrap/mgmt-cluster.yaml \
-  --volume $PWD/.sealed-secrets:/platform/.sealed-secrets
+  --volume $PWD/bootstrap/mgmt-cluster.yaml:/var/lib/rancher/k3s/server/manifests/mgmt-cluster.yaml@server:0 \
+  --volume $PWD/.sealed-secrets/mgmt/sealed-secrets-key.yaml:/var/lib/rancher/k3s/server/manifests/sealed-secrets-key.yaml@server:0
 ```
+
+K3s auto-applies YAML files mounted into `/var/lib/rancher/k3s/server/manifests` on the server node.
+
+Only the key Secret YAML needs to be mounted into the cluster. The public certificate stays on your host and is used by `scripts/seal-mgmt-secrets.sh` when creating sealed secrets.
 
 ---
 

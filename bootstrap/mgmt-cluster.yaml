@@ -37,7 +37,7 @@ spec:
       serviceAccountName: argocd-bootstrap
       containers:
         - name: install-argocd
-          image: bitnami/kubectl:1.25.12
+          image: alpine/k8s:1.30.0
           command:
             - /bin/sh
             - -c
@@ -70,7 +70,7 @@ spec:
       serviceAccountName: argocd-bootstrap
       containers:
         - name: bootstrap
-          image: bitnami/kubectl:1.25.12
+          image: alpine/k8s:1.30.0
           command:
             - /bin/sh
             - -c
@@ -82,7 +82,7 @@ spec:
               echo "[INFO] Waiting for repo-server readiness..." && \
               kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-repo-server -n argocd --timeout=120s && \
               echo "[INFO] ArgoCD is ready. Applying app-of-apps..." && \
-              kubectl apply -f https://raw.githubusercontent.com/juanroldan1989/platform/main/argo/app-of-apps.yaml
+              kubectl apply -f https://raw.githubusercontent.com/juanroldan1989/platform/main/argo/0-platform/app-of-apps.yaml
           resources:
             requests:
               cpu: 100m
