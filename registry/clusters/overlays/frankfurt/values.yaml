@@ -1,30 +1,30 @@
-# London Cluster Configuration
+# Frankfurt Cluster Configuration
 
-## Kubernetes cluster configuration for London cluster
+## Kubernetes cluster configuration for Frankfurt cluster
 cloud_provider:
   civo:
-    enabled: true
+    enabled: false # creates/deletes the cluster via GitOps
 
 global:
-  name: london
-  region: lon1
+  name: frankfurt
+  region: fra1
   k8s_version: 1.35.0-k3s1
   node_count: "1"
   node_type: g4s.kube.large
   storage_class: civo-volume
 
 ## DNS Configuration for External DNS
-txtOwnerId: london
+txtOwnerId: frankfurt
 domainFilters:
   - automatalife.com
 
 ## Cert Manager Configuration
-# This section defines the wildcard certificate for London cluster.
+# This section defines the wildcard certificate for the Frankfurt cluster.
 # A wildcard certificate will be created for all namespaces listed under `namespaces`.
 cert_manager:
   wildcard:
     enabled: true
     namespaces:
       - cert-manager
-      - hello-london
+      - hello-frankfurt
       - blog-db
