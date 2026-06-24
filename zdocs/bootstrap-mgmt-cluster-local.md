@@ -143,13 +143,29 @@ kubectl -n argocd get secret/argocd-initial-admin-secret -ojsonpath='{.data.pass
 
 ### 1.8 label mgmt-cluster properly
 
-Access `mgmt-cluster` config and add label:
+Create/update the ArgoCD cluster Secret for the management cluster:
 
+```sh
+kubectl apply -f argo/0-platform/argocd-support/argocd-in-cluster-secret.yaml
 ```
-in-cluster: "true"
+
+Or label the existing ArgoCD in-cluster Secret if it already exists:
+
+```sh
+kubectl -n argocd label secret cluster-in-cluster in-cluster=true --overwrite
 ```
 
 This way, ArgoCD will provision all `ApplicationSet` apps meant to be provisioned in `mgmt-cluster`, e.g.: ingress-nginx, dns-config, sealed-secrets.
+
+### 1.9 complete local-only setup
+
+Run the local helper script to create the management-cluster AWS credentials used by ESO and the Terraform modules:
+
+```sh
+./scripts/bootstrap-mgmt-cluster-local.sh
+```
+
+The script reads AWS credentials from your local `default` AWS profile and creates `external-secrets/aws-creds`.
 
 ## Step 2: Provisioning Cluster via GitOps in Civo/Vultr
 
@@ -174,6 +190,19 @@ This way, ArgoCD will provision all `ApplicationSet` apps meant to be provisione
 2. Create/Delete the `Kubernetes` cluster in `Civo/Vultr`
 
 3. Register the new cluster in `ArgoCD` using a generated secret (resource `kubernetes_secret_v1.argocd_cluster_secret`)
+
+## Step 3: Deploy applications in workload clusters
+
+- Once `ArgoCD` has provisioned workload clusters, `argo/2-applications/app-of-apps.yaml` will take care of automatically deploying the applications into each cluster.
+- Then, we access to a specific cluster, CIVO for example, and download the kubeconfig file and add it to Freelens.
+- Then, we can validate applications are being deployed properly.
+- Port-forward into a service and validate:
+
+```
+curl http://localhost:55907/
+
+👋 Hello from frankfurt.automatalife.com
+```
 
 ## Clean up
 
