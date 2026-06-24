@@ -12,7 +12,7 @@ spec:
       serviceAccountName: argocd-server
       containers:
       - name: wait
-        image: bitnami/kubectl:1.25.12
+        image: alpine/k8s:1.30.0
         command:
         - /bin/sh
         - -c

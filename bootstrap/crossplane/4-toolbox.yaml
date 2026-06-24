@@ -45,7 +45,7 @@ spec:
   serviceAccountName: toolbox
   containers:
     - name: toolbox
-      image: bitnami/kubectl:latest
+      image: alpine/k8s:1.30.0
       command: ["/bin/sh", "-c", "sleep infinity"]
       tty: true
       stdin: true
