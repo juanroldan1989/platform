@@ -1,25 +1,25 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: platform-apps
-  namespace: argocd
-spec:
-  project: default
-  # Root orchestrator for staged GitOps bootstrap.
-  # This app intentionally applies only the domain app-of-apps manifests
-  # instead of recursively syncing all of argo/. Keeping it non-recursive
-  # avoids duplicate ownership of child Applications/ApplicationSets and lets
-  # each layer be synced, debugged or deleted independently.
-  source:
-    repoURL: https://github.com/juanroldan1989/platform.git
-    targetRevision: main
-    path: argo
-    directory:
-      include: '{0-platform,1-infrastructure,2-applications}/app-of-apps.yaml'
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: argocd
-  syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: platform-apps
+#   namespace: argocd
+# spec:
+#   project: default
+#   # Root orchestrator for staged GitOps bootstrap.
+#   # This app intentionally applies only the domain app-of-apps manifests
+#   # instead of recursively syncing all of argo/. Keeping it non-recursive
+#   # avoids duplicate ownership of child Applications/ApplicationSets and lets
+#   # each layer be synced, debugged or deleted independently.
+#   source:
+#     repoURL: https://github.com/juanroldan1989/platform.git
+#     targetRevision: main
+#     path: argo
+#     directory:
+#       include: '{0-platform,1-infrastructure,2-applications}/app-of-apps.yaml'
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: argocd
+#   syncPolicy:
+#     automated:
+#       selfHeal: true
+#       prune: true
