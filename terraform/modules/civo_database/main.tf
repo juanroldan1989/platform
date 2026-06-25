@@ -37,9 +37,9 @@ resource "kubernetes_secret" "blog_database_creds" {
     password = civo_database.db.password
     host     = civo_database.db.endpoint
     port     = civo_database.db.port
-    database = var.database_name
+    database = var.connection_database_name
     # Connection string for applications
-    connection_string = "${lower(var.database_engine) == "postgresql" ? "postgresql" : lower(var.database_engine)}://${civo_database.db.username}:${civo_database.db.password}@${civo_database.db.endpoint}:${civo_database.db.port}/${var.database_name}"
+    connection_string = "${lower(var.database_engine) == "postgresql" ? "postgresql" : lower(var.database_engine)}://${civo_database.db.username}:${civo_database.db.password}@${civo_database.db.endpoint}:${civo_database.db.port}/${var.connection_database_name}"
   }
 
   type = "Opaque"

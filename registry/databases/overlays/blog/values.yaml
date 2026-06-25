@@ -3,6 +3,7 @@ region: LON1
 
 database:
   name: blog_db
+  connection_database: blog_db
   size: g3.db.small  # Available sizes: g3.db.small, g3.db.medium, g3.db.large
   engine: PostgreSQL
   version: "17"

@@ -9,8 +9,14 @@ variable "region" {
 }
 
 variable "database_name" {
-  description = "Name of the database"
+  description = "Name of the Civo managed database instance"
   type        = string
+}
+
+variable "connection_database_name" {
+  description = "Name of the database/catalog applications should connect to"
+  type        = string
+  default     = "postgres"
 }
 
 variable "database_size" {

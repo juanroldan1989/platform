@@ -1,0 +1,59 @@
+# Create the application database/catalog inside the managed PostgreSQL instance.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.name }}-database-create-catalog
+  namespace: {{ .Values.database.target_namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "23"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+      - name: create-database
+        image: postgres:17-alpine
+        env:
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: blog-db-managed-creds
+              key: host
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              name: blog-db-managed-creds
+              key: port
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: blog-db-managed-creds
+              key: username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: blog-db-managed-creds
+              key: password
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: blog-db-managed-creds
+              key: database
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -eu
+          export PGPASSWORD="${DB_PASS}"
+          export PGSSLMODE=require
+          psql "host=${DB_HOST} port=${DB_PORT} dbname=postgres user=${DB_USER}" \
+            -v ON_ERROR_STOP=1 \
+            -v app_db="${DB_NAME}" <<'SQL'
+          SELECT format('CREATE DATABASE %I', :'app_db')
+          WHERE NOT EXISTS (
+            SELECT 1 FROM pg_database WHERE datname = :'app_db'
+          )\gexec
+          SQL
+      restartPolicy: Never
+  backoffLimit: 3
