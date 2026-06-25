@@ -3,21 +3,6 @@ kind: Namespace
 metadata:
   name: blog-db
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: blog-content # PVC for a Volume so Ghost can store "Media Files": Images, Uploads, Attachments
-  namespace: blog-db
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-{{- if .Values.global.storage_class }}
-  storageClassName: {{ .Values.global.storage_class }}
-{{- end }}
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -35,41 +20,37 @@ spec:
     spec:
       containers:
         - name: blog
-          image: ghost:5-alpine
+          image: ghcr.io/requarks/wiki:2
           ports:
-            - containerPort: 2368
+            - containerPort: 3000
           env:
-            - name: url
-              value: http://blog.automatalife.com
-            - name: database__client
-              value: mysql
-            - name: database__connection__host
+            - name: DB_TYPE
+              value: postgres
+            - name: DB_HOST
               valueFrom:
                 secretKeyRef:
                   name: blog-db-managed-creds
                   key: host
-            - name: database__connection__user
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: blog-db-managed-creds
+                  key: port
+            - name: DB_USER
               valueFrom:
                 secretKeyRef:
                   name: blog-db-managed-creds
                   key: username
-            - name: database__connection__password
+            - name: DB_PASS
               valueFrom:
                 secretKeyRef:
                   name: blog-db-managed-creds
                   key: password
-            - name: database__connection__database
+            - name: DB_NAME
               valueFrom:
                 secretKeyRef:
                   name: blog-db-managed-creds
                   key: database
-          volumeMounts:
-            - name: content
-              mountPath: /var/lib/ghost/content
-      volumes:
-        - name: content
-          persistentVolumeClaim:
-            claimName: blog-content
 ---
 apiVersion: v1
 kind: Service
@@ -81,7 +62,7 @@ spec:
     app: blog
   ports:
     - port: 80
-      targetPort: 2368
+      targetPort: 3000
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

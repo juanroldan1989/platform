@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ .Values.name }}-database-creds-wait
-  namespace: {{ .Values.database.target_namespace }}
+  namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "22"
 spec:

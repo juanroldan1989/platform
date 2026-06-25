@@ -19,16 +19,22 @@ variable "database_size" {
   default     = "g3.db.small"
 }
 
-variable "mysql_version" {
-  description = "MySQL version"
+variable "database_engine" {
+  description = "Database engine"
   type        = string
-  default     = "8.0"
+  default     = "PostgreSQL"
+}
+
+variable "database_version" {
+  description = "Database engine version"
+  type        = string
+  default     = "17"
 }
 
 variable "database_username" {
   description = "Database username"
   type        = string
-  default     = "ghost"
+  default     = "blog"
 }
 
 variable "target_namespace" {

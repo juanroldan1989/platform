@@ -2,9 +2,10 @@ name: civo-managed-db
 region: LON1
 
 database:
-  name: ghost_blog_db
+  name: blog_db
   size: g3.db.small  # Available sizes: g3.db.small, g3.db.medium, g3.db.large
-  version: "8.0"
-  username: ghost
+  engine: PostgreSQL
+  version: "17"
+  username: blog
   nodes: 1
   target_namespace: blog-db

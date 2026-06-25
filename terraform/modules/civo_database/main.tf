@@ -1,6 +1,6 @@
 # CIVO Managed Database Module - Phase 3: Shared Database
 #
-# This module creates a managed MySQL database in CIVO that can be accessed
+# This module creates a managed database in CIVO that can be accessed
 # by multiple Kubernetes clusters. It uses the default CIVO network and firewall
 # to enable shared access across all clusters in the same region.
 #
@@ -14,8 +14,8 @@
 resource "civo_database" "db" {
   name    = var.database_name
   size    = var.database_size
-  engine  = "mysql"
-  version = var.mysql_version
+  engine  = var.database_engine
+  version = var.database_version
   nodes   = var.nodes
   region  = var.region
 
@@ -39,7 +39,7 @@ resource "kubernetes_secret" "blog_database_creds" {
     port     = civo_database.db.port
     database = var.database_name
     # Connection string for applications
-    connection_string = "mysql://${civo_database.db.username}:${civo_database.db.password}@${civo_database.db.endpoint}:${civo_database.db.port}/${var.database_name}"
+    connection_string = "${lower(var.database_engine) == "postgresql" ? "postgresql" : lower(var.database_engine)}://${civo_database.db.username}:${civo_database.db.password}@${civo_database.db.endpoint}:${civo_database.db.port}/${var.database_name}"
   }
 
   type = "Opaque"

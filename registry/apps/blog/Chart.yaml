@@ -1,5 +1,5 @@
 apiVersion: v2
 name: blog
 version: 0.1.0
-description: Helm chart to provision `Ghost Blog` application in workload clusters
+description: Helm chart to provision the blog application in workload clusters
 type: application

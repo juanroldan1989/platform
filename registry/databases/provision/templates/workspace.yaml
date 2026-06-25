@@ -17,7 +17,9 @@ spec:
       value: "{{ .Values.database.name }}"
     - key: database_size
       value: "{{ .Values.database.size }}"
-    - key: mysql_version
+    - key: database_engine
+      value: "{{ .Values.database.engine }}"
+    - key: database_version
       value: "{{ .Values.database.version }}"
     - key: database_username
       value: "{{ .Values.database.username }}"
