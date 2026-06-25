@@ -3,7 +3,7 @@
 ## Kubernetes cluster configuration for London cluster
 cloud_provider:
   civo:
-    enabled: false # creates/deletes the cluster via GitOps
+    enabled: true # creates/deletes the cluster via GitOps
 
 global:
   name: london
