@@ -3,6 +3,11 @@ kind: Application
 metadata:
   name: 2-applications
   namespace: argocd
+  # This finalizer ensures the application is not deleted until all child
+  # resources are deleted. It helps prevent orphaned resources, but deletion
+  # can take longer or block if a child resource is stuck.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
 spec:
   project: default
   source:
