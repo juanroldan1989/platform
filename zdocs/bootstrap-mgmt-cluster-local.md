@@ -10,6 +10,8 @@
   - install: `brew install kubectl`
 - kubeseal: fetch the Sealed Secrets certificate and seal local secrets
   - install: `brew install kubeseal`
+- yq: sanitize exported Kubernetes YAML before reusing it as bootstrap input
+  - install: `brew install yq`
 - civo account
   - set nameserver records at your domain registrar to `ns0.civo.com` and `ns1.civo.com`
   - add your domain in your [civo dns](https://dashboard.civo.com/dns)
@@ -47,27 +49,15 @@ Run this after the `sealed-secrets-in-cluster` ArgoCD app has installed the cont
 If the controller is not present yet, continue through the ArgoCD setup and cluster labeling steps below, wait for `sealed-secrets-in-cluster` to sync, then come back here.
 
 ```sh
-mkdir -p .sealed-secrets/mgmt
-
-kubectl -n kube-system rollout status deployment/sealed-secrets-controller --timeout=120s
-
-kubeseal --fetch-cert \
-  --controller-name sealed-secrets-controller \
-  --controller-namespace kube-system \
-  > .sealed-secrets/mgmt/sealed-secrets-public.pem
-
-KEY_NAME=$(kubectl -n kube-system get secret \
-  -l sealedsecrets.bitnami.com/sealed-secrets-key=active \
-  -o jsonpath='{.items[0].metadata.name}')
-
-kubectl -n kube-system get secret "${KEY_NAME}" -o yaml \
-  > .sealed-secrets/mgmt/sealed-secrets-key.yaml
+./scripts/export-sealed-secrets-key.sh
 ```
 
 This produces:
 
 - `.sealed-secrets/mgmt/sealed-secrets-public.pem`: public certificate used by `scripts/seal-mgmt-secrets.sh`
-- `.sealed-secrets/mgmt/sealed-secrets-key.yaml`: controller key secret to re-use when recreating the management cluster
+- `.sealed-secrets/mgmt/sealed-secrets-key.yaml`: sanitized controller key Secret to re-use when recreating the management cluster
+
+The private key manifest must be sanitized before reusing it with k3d/k3s. Do not export it with a raw `kubectl get secret ... -o yaml > file` command, because that keeps cluster-only fields such as `resourceVersion` and `uid`. K3s can reject that manifest during startup, causing the Sealed Secrets controller to generate a different key and making existing `SealedSecret` objects impossible to decrypt.
 
 ### Creating `mgmt-cluster` for future times:
 
@@ -84,6 +74,8 @@ k3d cluster create mgmt-cluster \
 K3s auto-applies YAML files mounted into `/var/lib/rancher/k3s/server/manifests` on the server node.
 
 Only the key Secret YAML needs to be mounted into the cluster. The public certificate stays on your host and is used by `scripts/seal-mgmt-secrets.sh` when creating sealed secrets.
+
+After the controller starts, it should load this mounted key. If ArgoCD shows `no key could decrypt secret`, check [Secrets troubleshooting](/zdocs/secrets.md); the usual cause is that the mounted key was not applied or the `SealedSecret` was sealed with a different public certificate.
 
 ---
 

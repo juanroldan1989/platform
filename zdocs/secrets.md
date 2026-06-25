@@ -83,6 +83,8 @@ Failed to unseal: no key could decrypt secret
 
 This means the `SealedSecret` was encrypted with a public certificate that does not match the private key currently loaded by the Sealed Secrets controller.
 
+For local rebuilds, the most common cause is that `.sealed-secrets/mgmt/sealed-secrets-key.yaml` was exported with raw Kubernetes metadata and was rejected during k3s startup. If that happens, the controller creates a new key, but `bootstrap/crossplane/0-crossplane-sealed-secrets.yaml` is still encrypted with the old public certificate.
+
 Check which keys are present:
 
 ```sh
@@ -113,20 +115,33 @@ kubectl -n kube-system get secret "${KEY_NAME}" \
 
 ### Fix Steps
 
-1. Apply the saved management Sealed Secrets key:
+1. Make sure the saved management Sealed Secrets key is sanitized:
+
+```sh
+yq eval -i 'del(
+  .metadata.creationTimestamp,
+  .metadata.generateName,
+  .metadata.resourceVersion,
+  .metadata.uid,
+  .metadata.managedFields,
+  .metadata.annotations."kubectl.kubernetes.io/last-applied-configuration"
+)' .sealed-secrets/mgmt/sealed-secrets-key.yaml
+```
+
+2. Apply the saved management Sealed Secrets key:
 
 ```sh
 kubectl apply -f .sealed-secrets/mgmt/sealed-secrets-key.yaml
 ```
 
-2. Restart the controller so it reloads the saved key:
+3. Restart the controller so it reloads the saved key:
 
 ```sh
 kubectl -n kube-system rollout restart deployment/sealed-secrets-controller
 kubectl -n kube-system rollout status deployment/sealed-secrets-controller
 ```
 
-3. Remove any generated key that does not match `.sealed-secrets/mgmt/sealed-secrets-public.pem`.
+4. Remove any generated key that does not match `.sealed-secrets/mgmt/sealed-secrets-public.pem`.
 
 For example, if the generated key is `sealed-secrets-keyk2csd` and the saved key is `sealed-secrets-keyp26xs`:
 
@@ -134,7 +149,7 @@ For example, if the generated key is `sealed-secrets-keyk2csd` and the saved key
 kubectl -n kube-system delete secret sealed-secrets-keyk2csd
 ```
 
-4. Re-apply or resync the `crossplane-secrets` SealedSecret:
+5. Re-apply or resync the `crossplane-secrets` SealedSecret:
 
 ```sh
 kubectl apply -f bootstrap/crossplane/0-crossplane-sealed-secrets.yaml
@@ -142,7 +157,7 @@ kubectl apply -f bootstrap/crossplane/0-crossplane-sealed-secrets.yaml
 
 Or sync the `crossplane-terraform-provider` Application in ArgoCD.
 
-5. Confirm the decrypted Secret exists:
+6. Confirm the decrypted Secret exists:
 
 ```sh
 kubectl -n crossplane-system get secret crossplane-secrets
