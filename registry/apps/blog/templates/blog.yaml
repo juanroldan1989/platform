@@ -26,6 +26,8 @@ spec:
           env:
             - name: DB_TYPE
               value: postgres
+            - name: DB_SSL
+              value: "true"
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
