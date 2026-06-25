@@ -9,9 +9,12 @@ spec:
   generators:
     - clusters:
         selector:
+          # matchLabels is an AND filter: every active label below must exist
+          # on the ArgoCD cluster Secret. Add more labels to narrow where this
+          # app deploys; remove labels to broaden the target set.
           matchLabels:
-            # cluster: "london"
-            workload: "true"
+            workload: "true"    # Deploy to all clusters labeled as workload clusters.
+            # cluster: "london" # Deploy to all clusters labeled as 'london'.
   template:
     metadata:
       name: blog-in-{{name}}
