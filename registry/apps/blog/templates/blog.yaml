@@ -3,6 +3,27 @@ kind: Namespace
 metadata:
   name: blog-db
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blog-config
+  namespace: blog-db
+data:
+  config.yml: |
+    port: 3000
+    bindIP: 0.0.0.0
+    db:
+      type: postgres
+      host: '$(DB_HOST)'
+      port: $(DB_PORT)
+      user: '$(DB_USER)'
+      pass: '$(DB_PASS)'
+      db: '$(DB_NAME)'
+      ssl: true
+      sslOptions:
+        auto: false
+        rejectUnauthorized: false
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,10 +45,6 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            - name: DB_TYPE
-              value: postgres
-            - name: DB_SSL
-              value: "true"
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
@@ -53,6 +70,14 @@ spec:
                 secretKeyRef:
                   name: blog-db-managed-creds
                   key: database
+          volumeMounts:
+            - name: blog-config
+              mountPath: /wiki/config.yml
+              subPath: config.yml
+      volumes:
+        - name: blog-config
+          configMap:
+            name: blog-config
 ---
 apiVersion: v1
 kind: Service
