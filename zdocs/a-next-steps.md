@@ -8,9 +8,9 @@ They target different parts of the repository and compose cleanly.
 
 ---
 
-## Step 1: Apply Option 5 (Domain Hierarchy) — Low Risk, Do First
+## Step 1: Apply Option 5 (Domain Hierarchy) — Completed
 
-Reorganise `argo/` into three ownership domains. This is a pure file move — no templates,
+`argo/` has been reorganised into three ownership domains. This was a pure file move — no templates,
 no values, no ArgoCD config changes required. ArgoCD handles it transparently because
 `app-of-apps.yaml` still recurses the `argo/` tree.
 
@@ -102,8 +102,8 @@ platform/         →  tooling installed on every cluster
 
 No big-bang migration required:
 
-1. **Do Option 5 now** — move files into `platform/`, `infrastructure/`, `applications/` domains.
-   Blog and hello-world keep working without any template changes.
+1. **Option 5 completed** — files have been moved into `platform/`, `infrastructure/`,
+   `applications/` domains. Blog and hello-world keep working without any template changes.
 
 2. **Add new systems as bundles** — the next microservices suite goes straight into
    `registry/bundles/` and `argo/applications/`.
