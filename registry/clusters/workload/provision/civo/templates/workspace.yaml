@@ -19,3 +19,7 @@ spec:
       value: {{ .Values.global.node_count | quote }}
     - key: node_type
       value: {{ .Values.global.node_type }}
+    - key: gpu_node_count
+      value: {{ .Values.global.gpu_node_count | quote }}
+    - key: gpu_node_type
+      value: {{ .Values.global.gpu_node_type }}
