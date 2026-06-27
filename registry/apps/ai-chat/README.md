@@ -47,12 +47,16 @@ In this chart, Ollama:
 
 Open WebUI is the browser-based chat interface. It does not run models directly; it connects to Ollama and lets users interact with the models through a web UI.
 
+<img width="1058" height="652" alt="Screenshot 2026-06-27 at 16 36 31" src="https://github.com/user-attachments/assets/a449a8a4-f99f-4f22-aae2-7a12c32c7c0a" />
+
 In this chart, Open WebUI:
 
 - Runs without a GPU request.
 - Connects to Ollama through `OLLAMA_BASE_URL` and `OLLAMA_BASE_URLS`.
 - Stores application and user data in the `open-webui-data` PVC mounted at `/app/backend/data`.
 - Is exposed externally through an Ingress.
+
+<img width="1081" height="853" alt="Screenshot 2026-06-27 at 16 42 25" src="https://github.com/user-attachments/assets/e3d200bc-ea25-436d-8cdf-c34bb5070475" />
 
 ## Namespace
 
