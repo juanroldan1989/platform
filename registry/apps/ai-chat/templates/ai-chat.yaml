@@ -19,6 +19,10 @@ spec:
     metadata:
       labels:
         app: ollama
+        app.kubernetes.io/name: ai-chat
+        app.kubernetes.io/component: ollama
+        app.kubernetes.io/part-of: platform-apps
+        observability/enabled: "true"
     spec:
       nodeSelector:
         nvidia.com/gpu.present: "true"
@@ -88,6 +92,10 @@ spec:
     metadata:
       labels:
         app: open-webui
+        app.kubernetes.io/name: ai-chat
+        app.kubernetes.io/component: open-webui
+        app.kubernetes.io/part-of: platform-apps
+        observability/enabled: "true"
     spec:
       containers:
         - name: open-webui

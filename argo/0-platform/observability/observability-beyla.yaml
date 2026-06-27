@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: observability-beyla
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "50"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            workload: "true"
+  template:
+    metadata:
+      name: observability-beyla-{{name}}
+      annotations:
+        argocd.argoproj.io/description: "Deploy Grafana Beyla eBPF application instrumentation in {{name}} cluster"
+    spec:
+      project: default
+      sources:
+        - repoURL: https://grafana.github.io/helm-charts
+          chart: beyla
+          targetRevision: 1.16.8
+          helm:
+            valueFiles:
+              - $values/registry/clusters/workload/config/observability/beyla-values.yaml
+        - repoURL: https://github.com/juanroldan1989/platform
+          targetRevision: main
+          ref: values
+      destination:
+        name: "{{name}}"
+        namespace: observability
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

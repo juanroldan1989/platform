@@ -1,0 +1,40 @@
+fullnameOverride: observability-gpu-metrics
+namespaceOverride: observability
+runtimeClassName: nvidia
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  scrapeTimeout: 10s
+  additionalLabels:
+    app.kubernetes.io/part-of: platform
+    platform.automatalife.com/layer: observability
+
+service:
+  enable: true
+  type: ClusterIP
+  port: 9400
+
+nodeSelector:
+  nvidia.com/gpu.present: "true"
+
+tolerations:
+  - operator: Exists
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 512Mi
+
+kubernetes:
+  enablePodLabels: true
+  enablePodUID: true
+  podLabelAllowlistRegex:
+    - "^app$"
+    - "^app\\.kubernetes\\.io/.*"
+    - "^observability/enabled$"
+  rbac:
+    create: true

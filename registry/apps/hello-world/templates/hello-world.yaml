@@ -17,6 +17,10 @@ spec:
     metadata:
       labels:
         app: hello
+        app.kubernetes.io/name: hello-world
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: platform-apps
+        observability/enabled: "true"
     spec:
       containers:
         - name: hello

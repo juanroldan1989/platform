@@ -1,0 +1,76 @@
+fullnameOverride: observability-beyla
+namespaceOverride: observability
+
+preset: application
+privileged: true
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 9090
+  portName: metrics
+  internalMetrics:
+    port: 6060
+    portName: int-metrics
+
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    app.kubernetes.io/part-of: platform
+    platform.automatalife.com/layer: observability
+  metrics:
+    endpoint:
+      interval: 15s
+      honorLabels: true
+  internalMetrics:
+    endpoint:
+      interval: 30s
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+tolerations:
+  - operator: Exists
+
+config:
+  create: true
+  data:
+    log_level: info
+    attributes:
+      kubernetes:
+        enable: true
+    discovery:
+      instrument:
+        - k8s_pod_labels:
+            observability/enabled: "true"
+          exports:
+            - metrics
+            - traces
+      exclude_instrument:
+        - k8s_namespace: observability
+        - k8s_namespace: kube-system
+        - k8s_namespace: cert-manager
+        - k8s_namespace: external-secrets
+        - k8s_namespace: ingress-nginx
+        - k8s_namespace: gpu-operator
+    prometheus_export:
+      port: 9090
+      path: /metrics
+      features:
+        - application
+        - application_service_graph
+    internal_metrics:
+      prometheus:
+        port: 6060
+        path: /metrics
+    otel_traces_export:
+      endpoint: http://observability-otel-collector.observability.svc.cluster.local:4317
+      protocol: grpc
+      instrumentations:
+        - http
+        - grpc

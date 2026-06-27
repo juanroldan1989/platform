@@ -1,0 +1,6 @@
+observability:
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: observability
+    app.kubernetes.io/part-of: platform
+    platform.automatalife.com/layer: observability

@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: observability-metrics
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "46"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            workload: "true"
+  template:
+    metadata:
+      name: observability-metrics-{{name}}
+      annotations:
+        argocd.argoproj.io/description: "Deploy Prometheus, Grafana, kube-state-metrics, and node-exporter in {{name}} cluster"
+    spec:
+      project: default
+      sources:
+        - repoURL: https://prometheus-community.github.io/helm-charts
+          chart: kube-prometheus-stack
+          targetRevision: 87.2.1
+          helm:
+            valueFiles:
+              - $values/registry/clusters/workload/config/observability/metrics-values.yaml
+        - repoURL: https://github.com/juanroldan1989/platform
+          targetRevision: main
+          ref: values
+      destination:
+        name: "{{name}}"
+        namespace: observability
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - Replace=true
+          - SkipDryRunOnMissingResource=true

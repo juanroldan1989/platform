@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: observability-otel-collector
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "48"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            workload: "true"
+  template:
+    metadata:
+      name: observability-otel-collector-{{name}}
+      annotations:
+        argocd.argoproj.io/description: "Deploy OpenTelemetry Collector telemetry router in {{name}} cluster"
+    spec:
+      project: default
+      sources:
+        - repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+          chart: opentelemetry-collector
+          targetRevision: 0.159.1
+          helm:
+            valueFiles:
+              - $values/registry/clusters/workload/config/observability/otel-collector-values.yaml
+        - repoURL: https://github.com/juanroldan1989/platform
+          targetRevision: main
+          ref: values
+      destination:
+        name: "{{name}}"
+        namespace: observability
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

@@ -1,0 +1,47 @@
+fullnameOverride: observability-metrics
+
+grafana:
+  enabled: true
+  defaultDashboardsEnabled: true
+  service:
+    type: ClusterIP
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 7d
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    scrapeConfigSelectorNilUsesHelmValues: false
+
+alertmanager:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+prometheusOperator:
+  enabled: true
+
+kubeApiServer:
+  enabled: true
+
+kubelet:
+  enabled: true
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeEtcd:
+  enabled: false

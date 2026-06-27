@@ -38,6 +38,10 @@ spec:
     metadata:
       labels:
         app: blog
+        app.kubernetes.io/name: blog
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: platform-apps
+        observability/enabled: "true"
     spec:
       containers:
         - name: blog
