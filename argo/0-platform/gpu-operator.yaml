@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: gpu-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "55"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            workload: "true"
+            gpu: "true"
+  template:
+    metadata:
+      name: gpu-operator-{{name}}
+      annotations:
+        argocd.argoproj.io/description: "Deploy NVIDIA GPU Operator in {{name}} cluster"
+    spec:
+      project: default
+      sources:
+        - repoURL: https://helm.ngc.nvidia.com/nvidia
+          chart: gpu-operator
+          targetRevision: 25.10.1
+          helm:
+            valueFiles:
+              - $values/registry/clusters/workload/config/gpu-operator/values.yaml
+        - repoURL: https://github.com/juanroldan1989/platform
+          targetRevision: main
+          ref: values
+      destination:
+        name: "{{name}}"
+        namespace: gpu-operator
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

@@ -1,0 +1,18 @@
+driver:
+  enabled: true
+
+toolkit:
+  enabled: false
+
+devicePlugin:
+  enabled: true
+
+gfd:
+  enabled: true
+
+operator:
+  defaultRuntime: containerd
+
+validator:
+  cuda:
+    runtimeClassName: nvidia
