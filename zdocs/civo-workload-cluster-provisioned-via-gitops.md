@@ -2,6 +2,8 @@
 
 This recording demonstrates how a Civo Kubernetes workload cluster is provisioned through the platform GitOps workflow.
 
+https://github.com/user-attachments/assets/00e9ff6f-d4f0-47e0-8d9b-1dc99f8633eb
+
 ## What the Video Shows
 
 1. Argo CD detects the cluster overlay in `registry/clusters/overlays/frankfurt`.
