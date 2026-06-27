@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ai-chat
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "70"
+spec:
+  generators:
+    - clusters:
+        selector:
+          # matchLabels is an AND filter: every active label below must exist
+          # on the ArgoCD cluster Secret. Add more labels to narrow where this
+          # app deploys; remove labels to broaden the target set.
+          matchLabels:
+            workload: "true"    # Deploy to all clusters labeled as workload clusters.
+            gpu: "true"         # Deploy to all clusters labeled as GPU clusters.
+            # cluster: "london" # Deploy to all clusters labeled as 'london'.
+  template:
+    metadata:
+      name: ai-chat-in-{{name}}
+      annotations:
+        argocd.argoproj.io/description: "Deploy AI Chat App in {{name}} cluster"
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/juanroldan1989/platform.git
+          targetRevision: main
+          path: registry/apps/ai-chat
+          helm:
+            valueFiles:
+              - $values/registry/clusters/overlays/{{name}}/values.yaml
+        - repoURL: https://github.com/juanroldan1989/platform
+          targetRevision: main
+          ref: values
+      destination:
+        name: '{{name}}'
+        namespace: ai-chat-{{name}}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

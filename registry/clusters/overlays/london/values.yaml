@@ -30,3 +30,4 @@ cert_manager:
       - cert-manager
       - hello-london
       - blog-db
+      - ai-chat-london

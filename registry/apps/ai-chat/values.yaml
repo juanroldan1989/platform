@@ -1,0 +1,14 @@
+aiChat:
+  namespacePrefix: ai-chat
+
+  ollama:
+    image: ollama/ollama:latest
+    storage: 50Gi
+    models:
+      - qwen2.5:7b
+      - mistral:7b
+      - llama3.1:8b
+
+  openWebui:
+    image: ghcr.io/open-webui/open-webui:main
+    storage: 10Gi

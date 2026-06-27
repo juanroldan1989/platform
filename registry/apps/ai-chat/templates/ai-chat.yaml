@@ -1,0 +1,192 @@
+{{- $namespace := printf "%s-%s" (.Values.aiChat.namespacePrefix | default "ai-chat") .Values.global.name -}}
+{{- $ollamaService := printf "http://ollama.%s.svc.cluster.local:11434" $namespace -}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $namespace }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: {{ $namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
+      containers:
+        - name: ollama
+          image: {{ .Values.aiChat.ollama.image }}
+          ports:
+            - containerPort: 11434
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 11434
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+      volumes:
+        - name: ollama-data
+          persistentVolumeClaim:
+            claimName: ollama-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-data
+  namespace: {{ $namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.aiChat.ollama.storage }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: {{ $namespace }}
+spec:
+  selector:
+    app: ollama
+  ports:
+    - port: 11434
+      targetPort: 11434
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-webui
+  namespace: {{ $namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: open-webui
+  template:
+    metadata:
+      labels:
+        app: open-webui
+    spec:
+      containers:
+        - name: open-webui
+          image: {{ .Values.aiChat.openWebui.image }}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ENABLE_OLLAMA_API
+              value: "true"
+            - name: OLLAMA_BASE_URL
+              value: {{ $ollamaService }}
+            - name: OLLAMA_BASE_URLS
+              value: {{ $ollamaService }}
+            - name: WEBUI_URL
+              value: https://ai-chat.{{ .Values.global.name }}.automatalife.com
+          volumeMounts:
+            - name: open-webui-data
+              mountPath: /app/backend/data
+      volumes:
+        - name: open-webui-data
+          persistentVolumeClaim:
+            claimName: open-webui-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: open-webui-data
+  namespace: {{ $namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.aiChat.openWebui.storage }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-webui
+  namespace: {{ $namespace }}
+spec:
+  selector:
+    app: open-webui
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: open-webui
+  namespace: {{ $namespace }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - ai-chat.{{ .Values.global.name }}.automatalife.com
+      secretName: wildcard-tls
+  rules:
+    - host: ai-chat.{{ .Values.global.name }}.automatalife.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: open-webui
+                port:
+                  number: 80
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ollama-model-puller
+  namespace: {{ $namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: model-puller
+          image: {{ .Values.aiChat.ollama.image }}
+          env:
+            - name: OLLAMA_HOST
+              value: {{ $ollamaService }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until ollama list >/dev/null 2>&1; do
+                echo "waiting for Ollama API"
+                sleep 10
+              done
+{{- range .Values.aiChat.ollama.models }}
+              ollama pull {{ . | quote }}
+{{- end }}
