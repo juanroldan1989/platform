@@ -30,6 +30,26 @@ The observability stack will be managed as a platform add-on and deployed throug
 
 Grafana will provide dashboards for cluster and application visibility, including CPU, memory, network, ingress traffic, and GPU metrics.
 
+#### Cluster And Node Health
+
+Recommended dashboard: `Node Exporter / Nodes`
+
+This screenshot shows node-level CPU, memory, disk, filesystem and network health.
+
+```text
+[Insert screenshot: Grafana node health dashboard]
+```
+
+#### Application Resource Usage
+
+Recommended dashboard: `Kubernetes / Compute Resources / Namespace / Pods`
+
+This screenshot shows CPU and memory usage for application pods and namespaces.
+
+```text
+[Insert screenshot: Grafana pod and namespace resource dashboard]
+```
+
 ### Prometheus-Compatible Metrics
 
 Metrics collection will provide the standard operational view of each workload cluster:
@@ -66,6 +86,14 @@ Application-level OpenTelemetry SDKs can be added later only where deeper busine
 NVIDIA DCGM exporter will expose GPU metrics on GPU-enabled clusters. This will make GPU utilization, memory, temperature, power, and errors visible in Grafana.
 
 GPU metrics will only be deployed to clusters labelled `gpu=true`.
+
+#### Dashboard: `NVIDIA DCGM Exporter / GPU Metrics`
+
+This screenshot shows GPU utilization, GPU memory usage, temperature and power usage while an AI workload is running.
+
+```text
+[Insert screenshot: Grafana NVIDIA DCGM GPU metrics dashboard]
+```
 
 ## Rollout Strategy
 
