@@ -41,6 +41,8 @@ Kubernetes nodes, pods, services, and GPUs
 Grafana dashboards
 ```
 
+In this diagram, eBPF means the Linux kernel can be used to observe network and application activity without changing application code. DCGM means NVIDIA Data Center GPU Manager, which exposes health and usage information from NVIDIA GPUs.
+
 ## Components Installed
 
 ### Grafana
@@ -101,6 +103,10 @@ This setup currently uses in-memory storage, which is suitable for early platfor
 
 Grafana Beyla provides eBPF-based application auto-instrumentation.
 
+eBPF, or extended Berkeley Packet Filter, is a Linux kernel technology that can observe low-level system activity such as network connections and process behavior. Beyla uses it to detect HTTP and gRPC traffic from running pods without adding tracing libraries to the application containers.
+
+gRPC is a high-performance service communication protocol commonly used for API calls between backend services. In this stack, detecting gRPC traffic helps expose request activity for services that do not use plain HTTP APIs.
+
 It discovers pods labelled with:
 
 ```yaml
@@ -118,6 +124,8 @@ https://grafana.com/docs/beyla/latest/configure/service-discovery/#k8s-pod-label
 ### NVIDIA DCGM Exporter
 
 NVIDIA DCGM exporter exposes GPU metrics on GPU-enabled clusters.
+
+DCGM, or NVIDIA Data Center GPU Manager, is NVIDIA's management and monitoring interface for data center GPUs. The DCGM exporter reads those GPU signals and exposes them as Prometheus-compatible metrics.
 
 It provides metrics such as:
 
