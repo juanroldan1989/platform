@@ -27,6 +27,8 @@ nodeExporter:
 
 prometheusOperator:
   enabled: true
+  admissionWebhooks:
+    enabled: false
 
 kubeApiServer:
   enabled: true
