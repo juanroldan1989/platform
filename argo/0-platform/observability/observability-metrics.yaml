@@ -4,7 +4,7 @@ metadata:
   name: observability-metrics
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "46"
+    argocd.argoproj.io/sync-wave: "47"
 spec:
   generators:
     - clusters:
@@ -23,6 +23,7 @@ spec:
           chart: kube-prometheus-stack
           targetRevision: 87.2.1
           helm:
+            skipCrds: true
             valueFiles:
               - $values/registry/clusters/workload/config/observability/metrics-values.yaml
         - repoURL: https://github.com/juanroldan1989/platform
@@ -37,5 +38,4 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
-          - Replace=true
           - SkipDryRunOnMissingResource=true

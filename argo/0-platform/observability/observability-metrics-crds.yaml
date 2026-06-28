@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: observability-metrics-crds
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "46"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            workload: "true"
+  template:
+    metadata:
+      name: observability-metrics-crds-{{name}}
+      annotations:
+        argocd.argoproj.io/description: "Deploy Prometheus Operator CRDs in {{name}} cluster"
+    spec:
+      project: default
+      source:
+        repoURL: https://prometheus-community.github.io/helm-charts
+        chart: prometheus-operator-crds
+        targetRevision: 30.0.0
+      destination:
+        name: "{{name}}"
+        namespace: observability
+      syncPolicy:
+        automated:
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - Replace=true

@@ -4,7 +4,7 @@ metadata:
   name: observability-beyla
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "50"
+    argocd.argoproj.io/sync-wave: "51"
 spec:
   generators:
     - clusters:
