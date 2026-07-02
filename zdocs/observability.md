@@ -92,9 +92,7 @@ GPU metrics will only be deployed to clusters labelled `gpu=true`.
 
 This screenshot shows GPU utilization, GPU memory usage, temperature and power usage while an AI workload is running.
 
-```text
-[Insert screenshot: Grafana NVIDIA DCGM GPU metrics dashboard]
-```
+<img width="1233" height="850" alt="Screenshot 2026-07-02 at 11 31 53" src="https://github.com/user-attachments/assets/3306f05d-8826-48a1-8a90-46be16869c03" />
 
 ## Rollout Strategy
 
