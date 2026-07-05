@@ -37,6 +37,7 @@ This repository's mission is to **enable a streamlined, scalable and self-servic
 │                            │  ┌─────────┐ ┌─────────┐    │                          │
 │                            │  │   ESO   │ │Terraform│    │                          │
 │                            │  └─────────┘ └─────────┘    │                          │
+│                            │ Ingress NGINX (ArgoCD/UI)   │                          │
 │                            └─────────────────────────────┘                          │
 │                                         │                                           │
 │                                         │ GitOps Sync                               │
@@ -44,52 +45,49 @@ This repository's mission is to **enable a streamlined, scalable and self-servic
 │                    ┌────────────────────┼────────────────────┐                      │
 │                    │                    │                    │                      │
 │                    ▼                    ▼                    ▼                      │
-│            ┌─────────────┐      ┌─────────────┐      ┌─────────────┐                │
-│            │  "workload" │      │  "workload" │      │  "workload" │                │
-│            │   Cluster   │      │   Cluster   │      │   Cluster   │                │
-│            │   London    │      │  Frankfurt  │      │   New York  │                │
-│            │   (CIVO)    │      │   (CIVO)    │      │   (CIVO)    │                │
-│            │             │      │             │      │             │                │
-│            │ ┌─────────┐ │      │ ┌─────────┐ │      │ ┌─────────┐ │                │
-│            │ │   App   │ │      │ │   App   │ │      │ │   App   │ │                │
-│            │ │  (Blog) │ │      │ │  (Blog) │ │      │ │  (Blog) │ │                │
-│            │ └─────────┘ │      │ └─────────┘ │      │ └─────────┘ │                │
-│            │             │      │             │      │             │                │
-│            │ ┌─────────┐ │      │ ┌─────────┐ │      │ ┌─────────┐ │                │
-│            │ │   ESO   │ │      │ │   ESO   │ │      │ │   ESO   │ │                │
-│            │ └─────────┘ │      │ └─────────┘ │      │ └─────────┘ │                │
-│            └─────────────┘      └─────────────┘      └─────────────┘                │
-│                    │                   │                    │                       │
-│                    └───────────────────┼────────────────────┘                       │
-│                                        │                                            │
-│                                        ▼                                            │
-│                              ┌─────────────────────┐                                │
-│                              │   Shared Resources  │                                │
-│                              │                     │                                │
-│                              │  ┌─────────────┐    │                                │
-│                              │  │    CIVO     │    │                                │
-│                              │  │   Database  │    │                                │
-│                              │  └─────────────┘    │                                │
-│                              │                     │                                │
-│                              │  ┌─────────────┐    │                                │
-│                              │  │     AWS     │    │                                │
-│                              │  │   Secrets   │    │                                │
-│                              │  │   Manager   │    │                                │
-│                              │  └─────────────┘    │                                │
-│                              │                     │                                │
-│                              │  ┌─────────────┐    │                                │
-│                              │  │ Cloudflare  │    │                                │
-│                              │  │Load Balancer│    │                                │
-│                              │  └─────────────┘    │                                │
-│                              └─────────────────────┘                                │
+│        ┌─────────────────────┐┌─────────────────────┐┌─────────────────────┐        │
+│        │    "workload"       ││    "workload"       ││    "workload"       │        │
+│        │  Cluster London     ││ Cluster Frankfurt   ││  Cluster NewYork    │        │
+│        │      (CIVO)         ││      (CIVO)         ││      (Vultr)        │        │
+│        │                     ││                     ││                     │        │
+│        │ Apps:               ││ Apps:               ││ Apps:               │        │
+│        │ - Blog              ││ - Blog              ││ - Blog              │        │
+│        │ - ChatGPT           ││ - ChatGPT           ││ - ChatGPT           │        │
+│        │                     ││                     ││                     │        │
+│        │ Addons:             ││ Addons:             ││ Addons:             │        │
+│        │ - External DNS      ││ - External DNS      ││ - External DNS      │        │
+│        │ - ESO               ││ - ESO               ││ - ESO               │        │
+│        │ - Nvidia GPU Op     ││ - Nvidia GPU Op     ││ - Nvidia GPU Op     │        │
+│        │ - Ingress NGINX     ││ - Ingress NGINX     ││ - Ingress NGINX     │        │
+│        │   (Apps)            ││   (Apps)            ││   (Apps)            │        │
+│        │ - Ollama (LLM       ││ - Ollama (LLM       ││ - Ollama (LLM       │        │
+│        │   Provisioning)     ││   Provisioning)     ││   Provisioning)     │        │
+│        │ - Observability     ││ - Observability     ││ - Observability     │        │
+│        │(Prometheus, Grafana,││(Prometheus, Grafana,││(Prometheus, Grafana,│        │
+│        │      Jaeger)        ││      Jaeger)        ││      Jaeger)        │        │
+│        └─────────────────────┘└─────────────────────┘└─────────────────────┘        │
+│                   │                     │                      │                    │
+│                   └─────────────────────┼──────────────────────┘                    │
+│                                         │                                           │
+│                                         ▼                                           │
+│                           ┌─────────────────────────────┐                           │
+│                           │      Shared Resources       │                           │
+│                           │                             │                           │
+│                           │  - CIVO Database            │                           │
+│                           │  - AWS Secrets Manager      │                           │
+│                           │  - Cloudflare Load Balancer │                           │
+│                           │  - Container Registry       │                           │
+│                           │   - Prometheus Federation   │                           │
+│                           └─────────────────────────────┘                           │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 This architecture demonstrates the complete GitOps-based multi-cluster platform with:
 - **Centralized Control**: Management cluster orchestrates all operations
-- **Distributed Applications**: Workload clusters across multiple regions
-- **Shared Resources**: Managed databases and load balancers
-- **Secure Communication**: ESO-based secret distribution
+- **Distributed Applications**: Blog and ChatGPT deployed across workload clusters in multiple regions
+- **AI Runtime Provisioning**: LLMs are provisioned via Ollama within each workload cluster
+- **Shared Resources**: CIVO Database, AWS Secrets Manager, Cloudflare Load Balancer, Container Registry and Prometheus Federation
+- **Secure Communication and Ops**: ESO-based secret distribution, ingress, DNS automation and per-cluster observability
 
 ## `platform` setup (local / cloud)
 
