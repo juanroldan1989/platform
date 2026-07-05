@@ -23,64 +23,7 @@ This repository's mission is to **enable a streamlined, scalable and self-servic
 
 ## Platform Architecture
 
-```bash
-┌─────────────────────────────────────────────────────────────────────────────────────┐
-│                                GitOps Control Plane                                 │
-│                            ┌─────────────────────────────┐                          │
-│                            │     "Management" Cluster    │                          │
-│                            │          (CIVO)             │                          │
-│                            │                             │                          │
-│                            │  ┌─────────┐ ┌──────────┐   │                          │
-│                            │  │ ArgoCD  │ │Crossplane│   │                          │
-│                            │  └─────────┘ └──────────┘   │                          │
-│                            │                             │                          │
-│                            │  ┌─────────┐ ┌─────────┐    │                          │
-│                            │  │   ESO   │ │Terraform│    │                          │
-│                            │  └─────────┘ └─────────┘    │                          │
-│                            │ Ingress NGINX (ArgoCD/UI)   │                          │
-│                            └─────────────────────────────┘                          │
-│                                         │                                           │
-│                                         │ GitOps Sync                               │
-│                                         │                                           │
-│                    ┌────────────────────┼────────────────────┐                      │
-│                    │                    │                    │                      │
-│                    ▼                    ▼                    ▼                      │
-│        ┌─────────────────────┐┌─────────────────────┐┌─────────────────────┐        │
-│        │    "workload"       ││    "workload"       ││    "workload"       │        │
-│        │  Cluster London     ││ Cluster Frankfurt   ││  Cluster NewYork    │        │
-│        │      (CIVO)         ││      (CIVO)         ││      (Vultr)        │        │
-│        │                     ││                     ││                     │        │
-│        │ Apps:               ││ Apps:               ││ Apps:               │        │
-│        │ - Blog              ││ - Blog              ││ - Blog              │        │
-│        │ - ChatGPT           ││ - ChatGPT           ││ - ChatGPT           │        │
-│        │                     ││                     ││                     │        │
-│        │ Addons:             ││ Addons:             ││ Addons:             │        │
-│        │ - External DNS      ││ - External DNS      ││ - External DNS      │        │
-│        │ - ESO               ││ - ESO               ││ - ESO               │        │
-│        │ - Nvidia GPU Op     ││ - Nvidia GPU Op     ││ - Nvidia GPU Op     │        │
-│        │ - Ingress NGINX     ││ - Ingress NGINX     ││ - Ingress NGINX     │        │
-│        │   (Apps)            ││   (Apps)            ││   (Apps)            │        │
-│        │ - Ollama (LLM       ││ - Ollama (LLM       ││ - Ollama (LLM       │        │
-│        │   Provisioning)     ││   Provisioning)     ││   Provisioning)     │        │
-│        │ - Observability     ││ - Observability     ││ - Observability     │        │
-│        │(Prometheus, Grafana,││(Prometheus, Grafana,││(Prometheus, Grafana,│        │
-│        │      Jaeger)        ││      Jaeger)        ││      Jaeger)        │        │
-│        └─────────────────────┘└─────────────────────┘└─────────────────────┘        │
-│                   │                     │                      │                    │
-│                   └─────────────────────┼──────────────────────┘                    │
-│                                         │                                           │
-│                                         ▼                                           │
-│                           ┌─────────────────────────────┐                           │
-│                           │      Shared Resources       │                           │
-│                           │                             │                           │
-│                           │  - CIVO Database            │                           │
-│                           │  - AWS Secrets Manager      │                           │
-│                           │  - Cloudflare Load Balancer │                           │
-│                           │  - Container Registry       │                           │
-│                           │   - Prometheus Federation   │                           │
-│                           └─────────────────────────────┘                           │
-└─────────────────────────────────────────────────────────────────────────────────────┘
-```
+<img width="731" height="760" alt="Screenshot 2026-07-05 at 16 47 09" src="https://github.com/user-attachments/assets/d50be817-04a3-4dd9-bf99-3081ec7fd9d8" />
 
 This architecture demonstrates the complete GitOps-based multi-cluster platform with:
 - **Centralized Control**: Management cluster orchestrates all operations
