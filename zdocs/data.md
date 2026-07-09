@@ -198,6 +198,24 @@ This setup uses a sophisticated GitOps workflow that automatically provisions a 
 4. **ExternalSecret** → Pulls credentials from AWS Secrets Manager to workload cluster
 5. **Blog App** → Uses the synced credentials to connect to the CIVO managed database
 
+#### **Operational Behavior and Networking Requirements**
+
+This is the effective runtime behavior after provisioning:
+
+1. **One-time bootstrap to workload cluster**: when a new workload cluster is provisioned, the `aws-creds` Kubernetes secret is copied from the management cluster into the workload cluster (namespace: `external-secrets`) so ESO can authenticate.
+2. **Management push**: management-cluster ESO (`PushSecret`) publishes DB credentials from `blog-db-managed-creds` into AWS Secrets Manager.
+3. **Workload pull**: each workload cluster ESO (`ExternalSecret`) independently pulls the secret from AWS Secrets Manager on its refresh interval.
+
+Clusters do **not** need to be in the same Kubernetes network, VPC, or cloud provider network for this to work.
+
+Required conditions per workload cluster:
+
+- Outbound connectivity to AWS Secrets Manager endpoint (public API or private endpoint).
+- Valid AWS authentication material for ESO (currently `aws-creds`, or an IAM-based identity model).
+- Correct `ClusterSecretStore` region/key settings matching the remote secret location.
+
+In short: secret sync is hub-and-spoke through AWS Secrets Manager, not direct continuous mgmt-cluster to workload-cluster secret streaming.
+
 #### **Technical Architecture**
 
 **Management Cluster (in-cluster)**:

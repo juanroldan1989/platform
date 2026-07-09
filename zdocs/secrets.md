@@ -65,6 +65,29 @@ To avoid re-sealing secrets every time a new cluster is created:
 | **Sealed Using**     | `sealed-secrets-public.pem` (checked into `.sealed-secrets/`) |
 | **Managed By**       | ArgoCD (part of `crossplane` app sync wave)                   |
 
+## ESO Multi-Cluster Secret Distribution
+
+This platform uses Sealed Secrets for Git-safe bootstrap credentials and ESO for cross-cluster runtime secret distribution.
+
+Current flow is:
+
+1. Management cluster provisions database resources and creates `blog-db-managed-creds`.
+2. ESO `PushSecret` in management pushes those credentials to AWS Secrets Manager.
+3. Each workload cluster runs ESO `ExternalSecret` and pulls from AWS Secrets Manager on its own refresh interval.
+4. Workload applications consume the local Kubernetes Secret created by `ExternalSecret`.
+
+Also, each newly provisioned workload cluster receives a one-time bootstrap copy of `aws-creds` in namespace `external-secrets` so ESO can authenticate to AWS.
+
+Workload clusters do not need to be in the same Kubernetes network or VPC as the management cluster.
+
+What they do need is:
+
+1. Outbound network access from each workload cluster to AWS Secrets Manager (public endpoint or private endpoint).
+2. Valid AWS authentication for ESO in each workload cluster (currently via `aws-creds` bootstrap secret).
+3. Correct `ClusterSecretStore` region and secret key configuration.
+
+In practice, synchronization is hub-and-spoke through AWS Secrets Manager, not continuous direct management-cluster to workload-cluster secret streaming.
+
 ## When to Run This Script
 
 - When rotating tokens (e.g.: expired or revoked `Civo/Vultr` tokens)
