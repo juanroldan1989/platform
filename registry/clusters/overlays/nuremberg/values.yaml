@@ -1,0 +1,33 @@
+# Nuremberg Cluster Configuration
+
+## Kubernetes cluster configuration for Nuremberg cluster
+cloud_provider:
+  hetzner:
+    enabled: true # creates/deletes the cluster via GitOps
+
+global:
+  name: nuremberg
+  region: ber1
+  k8s_version: 1.35.0-k3s1
+  storage_class: hcloud-volumes
+  node_count: "0"
+  node_type: g4s.kube.large
+  gpu_node_count: "1"
+  gpu_node_type: g4g.kube.small # Contains 1 GPU & 12 CPU Cores
+
+## DNS Configuration for External DNS
+txtOwnerId: nuremberg
+domainFilters:
+  - automatalife.com
+
+## Cert Manager Configuration
+# This section defines the wildcard certificate for nuremberg cluster.
+# A wildcard certificate will be created for all namespaces listed under `namespaces`.
+cert_manager:
+  wildcard:
+    enabled: true
+    namespaces:
+      - cert-manager
+      - hello-nuremberg
+      - blog-db
+      - ai-chat-nuremberg

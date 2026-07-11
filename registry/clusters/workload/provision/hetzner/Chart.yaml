@@ -1,0 +1,4 @@
+apiVersion: v2
+name: hetzner
+version: 0.1.0
+description: Helm chart to provision Hetzner workload clusters

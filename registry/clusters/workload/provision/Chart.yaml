@@ -8,6 +8,10 @@ dependencies:
     version: 0.1.0
     condition: cloud_provider.civo.enabled
     repository: "file://civo"
+  - name: hetzner
+    version: 0.1.0
+    condition: cloud_provider.hetzner.enabled
+    repository: "file://hetzner"
   - name: vultr
     version: 0.1.0
     condition: cloud_provider.vultr.enabled
