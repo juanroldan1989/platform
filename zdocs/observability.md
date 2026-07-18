@@ -69,6 +69,14 @@ The OpenTelemetry Collector will act as the telemetry routing layer. It will rec
 
 Jaeger will provide trace exploration. It will help understand request paths, service dependencies, and latency across services.
 
+<img width="1505" height="870" alt="Screenshot 2026-06-28 at 13 02 35" src="https://github.com/user-attachments/assets/13152127-5057-438a-89b8-5c0f6534ed54" />
+
+<img width="1511" height="581" alt="Screenshot 2026-06-28 at 13 02 49" src="https://github.com/user-attachments/assets/c3148a32-3377-4b68-86f6-65f198c1042c" />
+
+<img width="1512" height="791" alt="Screenshot 2026-06-28 at 13 03 16" src="https://github.com/user-attachments/assets/a41619c9-ba6e-47f4-8c95-d213013b50f4" />
+
+<img width="1512" height="872" alt="Screenshot 2026-06-28 at 13 04 00" src="https://github.com/user-attachments/assets/ed7be5b7-2605-403f-bd5e-5426ca8e4e69" />
+
 ### Grafana Beyla
 
 Grafana Beyla will provide eBPF-based application auto-instrumentation. This gives baseline request visibility without adding tracing SDKs or agents inside the application containers.
