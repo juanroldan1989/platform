@@ -1,18 +1,31 @@
 # Introduction
 
-The [platform](https://github.com/juanroldan1989/platform) repository is built to manage Kubernetes-based application environments using `GitOps` principles.
+A **GitOps reference implementation** for **provisioning and managing Kubernetes
+clusters**, platform services and application workloads **across cloud providers
+and regions**.
 
-It provides foundational infrastructure and automation to support deploying applications across `workload` clusters.
+The project explores how a management cluster can coordinate infrastructure
+provisioning, workload-cluster registration and application delivery through
+Argo CD, Crossplane and Terraform. It brings together secret distribution,
+DNS, TLS, observability and GPU-enabled workloads in a **shared Git-driven
+workflow**.
 
-Each cluster is provisioned across `regions` and `cloud providers` (CIVO, Vultr), achieving high availability and reliability.
+It is intended for **platform engineers** who want to **understand, reproduce
+and adapt** a multi-cluster platform, including the dependencies and **operational
+tradeoffs** involved.
+
+The implementation is evolving. Provider support, deployment paths and
+recovery workflows have different levels of validation. See the
+[roadmap](zdocs/ROADMAP.md) for planned work and known gaps, and the
+[repository structure](zdocs/repo-structure.md) to navigate the code.
 
 ## Goals
 
 This repository's mission is to **enable a streamlined, scalable and self-service platform** where:
 
-1. Application teams focus solely on **developing their apps in separate repositories** (e.g.: [applications](https://github.com/juanroldan1989/applications) repo).
+1. **Application teams** focus solely on **developing their apps in separate repositories** (e.g.: [applications](https://github.com/juanroldan1989/applications) repo).
 
-2. Platform engineers use this [platform](https://github.com/juanroldan1989/platform) repository to follow `GitOps` practices and define:
+2. **Platform teams** use this [platform](https://github.com/juanroldan1989/platform) repository to follow `GitOps` practices and define:
 
 * `MGMT` (management) Cluster
 * `Workload` Clusters
@@ -133,6 +146,8 @@ git add 0-crossplane-sealed-secrets.yaml && git commit
 
 3. **Access ArgoCD**:
 
+Replace `argocd.automatalife.com` with your configured hostname.
+
 ```bash
 # Get initial admin password
 kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
@@ -233,8 +248,8 @@ platform/
 - **Database High Availability**: CIVO managed database with built-in failover
 
 ### Detailed Scenarios
-- `Hello World` app (stateless): All details [here](zdocs/failover-hello-world.md)
-- `Blog` app (stateful): All details [here](zdocs/failover-blog.md)
+- `Hello World` app (stateless): All details [here](zdocs/operations/failover-hello-world.md)
+- `Blog` app (stateful): All details [here](zdocs/operations/failover-blog.md)
 
 ## Monitoring & Observability
 
@@ -285,76 +300,7 @@ platform/
 3. **Phase 3**: ✅ **CURRENT** - Multiple clusters sharing one managed database
 4. **Phase 4**: Multi-cloud managed database with global read replicas
 
-Detailed documentation: [data.md](zdocs/data.md)
-
-## (TODO) Deploy applications that rely on each other
-
-- Deploy a main "Dashboard" application that relies on secondary "Weather", "Temperature" and "Traffic" applications.
-- Each of these "secondary" applications can be deployed on ANY "workload" clusters.
-- Provide mechanism for "main" and "secondary" applications to connect with each other cross clusters.
-
-## (TODO) Clusters hardening
-
-Harden via Kubernetes Benchmarks
-
-Use kube-bench to evaluate your cluster against the CIS Kubernetes Benchmark:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml
-```
-
-## (TODO) Costs
-
-https://github.com/kubecost
-
-## Applications with External Access
-
-### How do we install, validate and define Ingress resources GitOps-style?
-
-* Ingress resources are declared within each cluster's registry folder: `registry/clusters/{{cluster}}/ingress-nginx`
-* NGINX Ingress Controller is installed via ArgoCD into each workload cluster.
-* Ingress is automatically routed via `LoadBalancer` and DNS Manager.
-
-### How is cert-manager handled for each app?
-
-* A `ClusterIssuer` is defined using `Let’s Encrypt` with `DNS-01` challenge via `Cloudflare`.
-* `cert-manager` auto-issues certificates for any ingress using the shared wildcard TLS secret.
-* Secrets are managed with **External Secrets Operator** and `GitOps`.
-
-### How DNS records are managed?
-
-* DNS records are stored within `Cloudflare`.
-
-* `external-dns` allows us to:
-
-- synchronize **exposed Kubernetes Services and Ingresses** with **DNS providers.**
-- monitor Ingresses and creates `A/TXT` records in `Cloudflare`.
-
-* It authenticates using a shared `Cloudflare API token`, managed with `ESO` and `GitOps`.
-* Each cluster (e.g., `london`, `frankfurt`, `newyork`) can expose a unique subdomain securely.
-* For example, `app.london.automatalife.com` is a real endpoint exposed securely via HTTPS.
-
-### Quick Local Testing Without DNS Propagation
-
-To test while waiting for DNS propagation:
-
-```bash
-sudo nano /etc/hosts
-```
-
-Add:
-
-```text
-74.220.20.97   app.london.automatalife.com
-```
-
-Then open in your browser or use:
-
-```bash
-curl -v https://app.london.automatalife.com
-```
-
-Remember to remove it afterward to prevent stale DNS routing.
+Detailed documentation: [data.md](zdocs/operations/data.md)
 
 ## References
 

@@ -122,3 +122,40 @@ No big-bang migration required:
 | Add new region for existing app | Edit every cluster overlay | Add 1 overlay inside the bundle |
 | Understand what deploys where | Read across `argo/apps`, `argo/databases`, `argo/load_balancers` | Open `argo/applications/` |
 | Platform tools vs app changes | Mixed in same `argo/` flat list | Separate `platform/` and `applications/` domains |
+
+## Additional platform work
+
+These tasks remain planned. Track their implementation and validation alongside
+[the platform roadmap](../ROADMAP.md).
+
+### TODO: Deploy applications that rely on each other
+
+- Deploy a main "Dashboard" application that relies on secondary "Weather",
+  "Temperature" and "Traffic" applications.
+- Allow each secondary application to run on any selected workload cluster.
+- Provide a mechanism for the Dashboard and its dependencies to discover and
+  connect to each other across clusters. Kubernetes service DNS alone does not
+  establish connectivity between independent clusters.
+- Validate the application with dependencies on different clusters and document
+  the network path, access controls and behavior when a dependency is unavailable.
+
+### TODO: Cluster hardening
+
+Use kube-bench to evaluate supported cluster environments against the CIS
+Kubernetes Benchmark:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml
+```
+
+Check the job's prerequisites and benchmark compatibility for the Kubernetes
+version and distribution being tested. Pin a reviewed revision when making the
+check reproducible. Record findings and remediation in the
+[security documentation](../operations/security.md).
+
+### TODO: Costs
+
+Evaluate [Kubecost](https://github.com/kubecost) for visibility into workload and
+cluster costs. Relate resource allocation and usage to provider charges, and
+record the selected approach with the
+[observability documentation](../operations/observability.md).

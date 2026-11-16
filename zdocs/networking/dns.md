@@ -6,6 +6,50 @@ to the public internet over HTTPS **using GitOps and ArgoCD.**
 
 It also includes a quick debug tip using `/etc/hosts`.
 
+## Applications with external access
+
+### Ingress resources managed through GitOps
+
+- Application Ingress manifests live in the application charts under
+  `registry/apps/<application>/templates/`, for example the
+  [Hello World template](../../registry/apps/hello-world/templates/hello-world.yaml).
+- Argo CD ApplicationSets under `argo/2-applications/` deploy those charts to
+  selected workload clusters.
+- The [ingress controller ApplicationSet](../../argo/0-platform/ingress-nginx-config.yaml)
+  installs NGINX Ingress using the
+  [shared controller values](../../registry/clusters/workload/config/ingress-nginx/values.yaml).
+- The controller's `LoadBalancer` Service provides an ingress address. ExternalDNS
+  manages DNS records for configured Ingress hosts; the controller routes requests
+  to the corresponding application Services.
+
+### Certificates for each application
+
+- The [certificate support ApplicationSet](../../argo/0-platform/cert-manager/cert-manager-support.yaml)
+  deploys the support chart with cluster-specific overlay values.
+- A [ClusterIssuer](../../registry/clusters/workload/support/cert-manager/templates/cluster-issuer.yaml)
+  uses Let's Encrypt with Cloudflare DNS-01 validation.
+- The [Certificate template](../../registry/clusters/workload/support/cert-manager/templates/certificate.yaml)
+  requests wildcard certificates for the namespaces listed in each cluster's
+  `cert_manager.wildcard.namespaces` values.
+- cert-manager creates and renews the `wildcard-tls` Secret in each configured
+  namespace. An application's Ingress references the Secret in its own namespace;
+  it is not a single Secret shared across namespaces.
+- ESO supplies the Cloudflare API credentials used by cert-manager and ExternalDNS.
+  The TLS certificate Secret itself is managed by cert-manager.
+
+### DNS records
+
+- Cloudflare hosts the DNS zone. ExternalDNS watches the configured Kubernetes
+  resources, including Ingress hosts, and reconciles DNS records and TXT ownership
+  records.
+- The [ExternalDNS ApplicationSet](../../argo/0-platform/external-dns-config.yaml)
+  combines cluster overlays with the
+  [shared configuration](../../registry/clusters/workload/config/external-dns/values.yaml).
+- Its Cloudflare API token is delivered through ESO and GitOps-managed resources.
+- Each cluster can expose its own application subdomain, such as
+  `app.london.automatalife.com`. The examples below use `automatalife.com`; replace
+  it with a domain you control and keep your manifests and values consistent.
+
 ## DNS & HTTPS Flow Overview
 
 ### 1. **ExternalDNS**
@@ -47,7 +91,7 @@ It also includes a quick debug tip using `/etc/hosts`.
 
   - Uses the ClusterIssuer to create a wildcard certificate for `*.london.automatalife.com`.
   - Validates DNS-01 challenge using the secret injected by ESO.
-  - Stores the final cert in a Kubernetes TLS secret (e.g., `london-wildcard-tls`).
+  - Stores the final cert in a Kubernetes TLS secret (e.g., `wildcard-tls`).
 
 ### 5. **NGINX Ingress Controller**
 
@@ -64,33 +108,37 @@ It also includes a quick debug tip using `/etc/hosts`.
 
   - Deployment
   - Service
-  - Ingress (uses `london-wildcard-tls` for TLS termination)
+  - Ingress (uses `wildcard-tls` for TLS termination)
 
 - **Route exposed:** `https://app.london.automatalife.com`
 
 ---
 
-## Quick DNS Debug via /etc/hosts
+## Quick local testing without DNS propagation
 
-If global DNS hasn't propagated yet, test locally by adding this entry:
+To test while waiting for DNS propagation, add a temporary local hostname mapping:
 
 ```bash
 sudo nano /etc/hosts
 ```
 
+Replace the example address and hostname with your ingress IP and configured domain:
+
 ```text
 74.220.20.97   app.london.automatalife.com
 ```
 
-Then you can test:
+Then open the hostname in your browser or use:
 
 ```bash
 curl -v https://app.london.automatalife.com
 ```
 
-Or open it in your browser.
+This tests the ingress address directly from your machine; it does not verify
+public DNS propagation or Cloudflare load-balancer routing. The TLS certificate
+must still cover the configured hostname.
 
-> Remember to remove the entry later to avoid stale DNS routing.
+Remove the entry afterward to prevent stale DNS routing.
 
 ---
 
@@ -110,9 +158,8 @@ graph TD
 
 ## DNS & Ingress Debugging – Step-by-Step
 
-This section outlines how we diagnosed and resolved issues while bringing
-
-`hello-world` online via `app.london.automatalife.com` and `app.frankfurt.automatalife.com`.
+Use these checks to diagnose HTTPS access to an application, replacing
+`app.london.automatalife.com` and `app.frankfurt.automatalife.com` with your configured hosts.
 
 ### Step 1: Check LoadBalancer service status
 
